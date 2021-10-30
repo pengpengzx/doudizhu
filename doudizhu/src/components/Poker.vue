@@ -163,6 +163,7 @@
           style="width: 11vw"
           name="出牌"
           type="hit"
+          :player="player1"
         />
       </div>
       <div class="ui-tip" v-if="isShowDoubleTip">
@@ -185,7 +186,7 @@
 </template>
 
 <script>
-import { play } from "@/utils/bgm.js";
+import { playBGM } from "@/utils/bgm.js";
 import { sleep } from "@/utils/sleep.js";
 import { playAudio } from "@/constant/audio.js";
 import POKERS from "@/constant/poker.js";
@@ -274,7 +275,7 @@ export default {
   methods: {
     cloneDeep,
     async startGame() {
-      play();
+      playBGM();
       this.notStart = false;
       this.isShowPoker = true;
       await this.deal();
@@ -416,24 +417,26 @@ export default {
     // 出牌
     hit(player) {
       let { playerNum, nextTurn } = player;
-      console.log(player.hands.length, playerNum, "手牌数量");
-      const toBeDropIndexList = [];
-      const tempHitCards = cloneDeep(player.hands).filter((el, index) => {
-        if (el.isSelected) {
-          toBeDropIndexList.push(index);
-        }
-        return el.isSelected;
-      });
-      if (tempHitCards && tempHitCards.length === 0) return;
+      // console.log(player.hands.length, playerNum, "手牌数量");
+      // const toBeDropIndexList = [];
+      // const tempHitCards = cloneDeep(player.hands).filter((el, index) => {
+      //   if (el.isSelected) {
+      //     toBeDropIndexList.push(index);
+      //   }
+      //   return el.isSelected;
+      // });
+      // if (tempHitCards && tempHitCards.length === 0) return;
 
-      player.nowTurnHitCardsList = tempHitCards;
-
-      this.repeatFn(
-        toBeDropIndexList.length,
-        this.dropHandCard,
-        player,
-        toBeDropIndexList
-      );
+      // player.nowTurnHitCardsList = tempHitCards;
+      // const toBeHitCardType = this.confirmToBeHitType(tempHitCards);
+      // if (!toBeHitCardType) return playErrorAudio();
+      // return
+      // this.repeatFn(
+      //   toBeDropIndexList.length,
+      //   this.dropHandCard,
+      //   player,
+      //   toBeDropIndexList
+      // );
       if (playerNum === 1) {
         this.isMyHit = false;
         this.isShowHitCards = true;
@@ -486,7 +489,10 @@ export default {
         return;
       }
       // 确定出牌的类型
-      this.confirmToBeHitType(hitCard);
+      const toBeHitCardType = this.confirmToBeHitType(hitCard);
+      
+      console.log(toBeHitCardType, 'toBeHitCardType');
+      return false;
       hands.forEach((el) => {
         if (cardMap[el.rank]) {
           cardMap[el.rank].push(el);
@@ -545,7 +551,7 @@ export default {
       // 单牌
       const cardType = VALIDATE.checkType(hitCards);
       console.log(cardType, 'cardType');
-      
+      return cardType;
     },
     dropHandCard(palyer, toBeDropIndexList) {
       palyer.hands.splice(toBeDropIndexList.pop(), 1);
