@@ -159,7 +159,7 @@
 
         <UIButton
           class="ui-btn primary"
-          @clickHandler="hit(player1)"
+          @clickHandler="playerHitHandler"
           style="width: 11vw"
           name="出牌"
           type="hit"
@@ -188,13 +188,14 @@
 <script>
 import { playBGM } from "@/utils/bgm.js";
 import { sleep } from "@/utils/sleep.js";
+import { computerHitCard } from "@/utils/computer-ai.js";
 import { playAudio } from "@/constant/audio.js";
 import POKERS from "@/constant/poker.js";
 import UIButton from "./UIButton.vue";
 import shuffle from "lodash/shuffle.js";
 import cloneDeep from "lodash/cloneDeep.js";
 import Card from "./Card.vue";
-import VALIDATE from "@/utils/validate.js";
+// import VALIDATE from "@/utils/validate.js";
 import sortOrder from "@/constant/order.js";
 // const tempMapPlayer = {
 //   1: "player1",
@@ -320,12 +321,6 @@ export default {
       if (this.selectedCardsTemp.indexOf(id) === -1) {
         this.selectedCardsTemp.push(id);
           card.isSelected = !card.isSelected;
-
-        // if (index === -1) {
-        //   console.log(card, 'card');
-        // } else {
-        //   card.isSelected = !card.isSelected;
-        // }
       }
     },
     handstouchEnd() {
@@ -415,10 +410,13 @@ export default {
     },
     // 提示
     hint() {},
+    playerHitHandler(params = null) {
+      this.player1.cardInfo = params; 
+      this.afterHitHandler(this.player1)
+    },
     // 出牌
-    hit(player) {
+    afterHitHandler(player) {
       let { playerNum, nextTurn } = player;
-
       if (playerNum === 1) {
         this.isMyHit = false;
         this.isShowHitCards = true;
@@ -439,101 +437,16 @@ export default {
         this.isMyHit = true;
         return;
       }
-      let nextPlayer = this.playerList[nextTurn - 1];
+      const nextPlayer = this.playerList[nextTurn - 1];
       this.nextTurn(nextPlayer);
     },
-    async nextTurn(player) {
+    async nextTurn(computer) {
+      // 延迟1s
       await sleep(1000);
-      if (player.playerNum === 2) this.player2HitCardsList = [];
-      if (player.playerNum === 3) this.player3HitCardsList = [];
+      if (computer.playerNum === 2) this.player2HitCardsList = [];
+      if (computer.playerNum === 3) this.player3HitCardsList = [];
 
-      this.findDoubleCard(player);
-    },
-    findDoubleCard(nowTurnPlayer) {
-      const { hands, playerNum, preTurn } = nowTurnPlayer;
-      const cardMap = {};
-      const doubleList = [];
-
-      const preTunrPlayer = this.playerList[nowTurnPlayer.preTurn - 1];
-      let hitCard = preTunrPlayer.nowTurnHitCardsList;
-      console.log(hitCard, "上一个玩家出的牌");
-      if (hitCard.length === 0) {
-        const prepreTunrPlayer = this.playerList[preTunrPlayer.preTurn - 1];
-        hitCard = prepreTunrPlayer.nowTurnHitCardsList;
-      }
-      if (hitCard.length === 0) {
-        if (preTurn === 1) {
-          // 电脑的逻辑，自己随便走
-          console.log("电脑的逻辑，自己随便走,剩下两个人都要不起，随便出牌");
-          return;
-        }
-        console.log("2个人都要不起，随便出牌");
-        return;
-      }
-      // 确定出牌的类型
-      const toBeHitCardType = this.confirmToBeHitType(hitCard);
-      
-      console.log(toBeHitCardType, 'toBeHitCardType');
-      return false;
-      hands.forEach((el) => {
-        if (cardMap[el.rank]) {
-          cardMap[el.rank].push(el);
-        } else {
-          cardMap[el.rank] = [el];
-        }
-      });
-      for (const key in cardMap) {
-        if (cardMap[key].length === 2) {
-          doubleList.push(key);
-        }
-      }
-      doubleList.sort((a, b) => {
-        const indexA = sortOrder.indexOf(a);
-        const indexB = sortOrder.indexOf(b);
-        return indexA - indexB;
-      });
-      let toBeHit = "";
-      for (let index = 0; index < doubleList.length; index++) {
-        const element = doubleList[index];
-        const a = sortOrder.indexOf(element);
-        const b = sortOrder.indexOf(hitCard[0].rank);
-
-        if (a > b) {
-          toBeHit = element;
-          break;
-        }
-      }
-      console.log(`要出的牌${toBeHit}`, `player${playerNum}`);
-      hands.forEach((el) => {
-        if (toBeHit && el.rank === toBeHit) {
-          el.isSelected = true;
-        }
-      });
-
-      // let player = playerNum === 2 ? this.player2 : this.player3;
-      if (!toBeHit) {
-        playAudio("notCall");
-        if (playerNum === 2) {
-          this.isShowHitCardsPlayer2 = true;
-          nowTurnPlayer.nowTurnHitCardsList = [];
-          return this.nextTurn(this.player3, 3);
-        } else {
-          this.isShowHitCardsPlayer3 = true;
-          nowTurnPlayer.nowTurnHitCardsList = [];
-          this.player1.nowTurnHitCardsList = [];
-          this.isMyHit = true;
-          return;
-        }
-      }
-      playAudio("hit");
-      this.hit(nowTurnPlayer);
-    },
-    confirmToBeHitType(hitCards) {
-      console.log(hitCards, '要对付的牌要对付的牌要对付的牌要对付的牌要对付的牌');
-      // 单牌
-      const cardType = VALIDATE.checkType(hitCards);
-      console.log(cardType, 'cardType');
-      return cardType;
+      computerHitCard(computer, this.playerList);
     },
     dropHandCard(palyer, toBeDropIndexList) {
       palyer.hands.splice(toBeDropIndexList.pop(), 1);

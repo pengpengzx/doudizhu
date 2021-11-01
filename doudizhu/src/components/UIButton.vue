@@ -33,39 +33,49 @@ export default {
     async clickHandler() {
       try {
         // 如果按钮为【出牌】，玩家出的牌不符合游戏规则，播放错误音效
-        if (this.type === "hit" && !this.validateCards()) return playErrorAudio();
-        await this.audio.play();
-        this.$emit("clickHandler");
+        if (this.type === "hit") {
+          const isValid = this.validateCards();
+          if (!isValid) {
+            return playErrorAudio();
+          } else {
+            await this.audio.play();
+            console.log(isValid, "参数");
+            this.$emit("clickHandler", isValid);
+          }
+        } else {
+          await this.audio.play();
+          this.$emit("clickHandler");
+        }
       } catch (error) {
         console.log(error);
       }
     },
     // 校验出的牌是否符合规则
     validateCards() {
-      const player = this.player;
-      let { playerNum } = player;
-      console.log(player.hands.length, playerNum, "手牌数量");
-      const toBeDropIndexList = [];
       // 玩家选中的牌
-      const tempHitCards = cloneDeep(player.hands).filter((el) => {
-        if (el.isSelected) {
-          toBeDropIndexList.push(el.id);
-        }
+      const selectedCards = this.filterSelectedCard();
+      // 没有选中的牌 返回
+      if (selectedCards && selectedCards.length === 0) return false;
+
+      this.player.nowTurnHitCardsList = selectedCards;
+      const toBeHitCardType = this.confirmToBeHitType(selectedCards);
+
+      toBeHitCardType && this.dropTheCards(selectedCards);
+      return toBeHitCardType;
+    },
+    // 点击出牌按钮后 校验出的牌是否符合规则 确定没问题后删除手牌上对应的牌
+    dropTheCards(toBeDropIndexList) {
+      toBeDropIndexList.forEach((el) => {
+        const index = this.player.hands.findIndex((el2) => el2.id === el.id);
+        this.player.hands.splice(index, 1);
+      });
+    },
+    // 玩家选中的牌
+    filterSelectedCard() {
+      const tempHitCards = cloneDeep(this.player.hands).filter((el) => {
         return el.isSelected;
       });
-      if (tempHitCards && tempHitCards.length === 0) return;
-
-      player.nowTurnHitCardsList = tempHitCards;
-      const toBeHitCardType = this.confirmToBeHitType(tempHitCards);
-      if (toBeHitCardType) {
-        toBeDropIndexList.forEach(el => {
-          console.log(el, 'el');
-          const index = player.hands.findIndex(el2 => el2.id === el);
-          console.log(index, 'index');
-          player.hands.splice(index, 1);
-        })
-      }
-      return toBeHitCardType;
+      return tempHitCards;
     },
     confirmToBeHitType(hitCards) {
       console.log(
@@ -74,7 +84,7 @@ export default {
       );
       // 单牌
       const cardType = VALIDATE.checkType(hitCards);
-      console.log(cardType, 'cardType');
+      console.log(cardType, "cardType");
       return cardType;
     },
   },
