@@ -1,87 +1,138 @@
 import sortOrder from "@/constant/order.js";
 import { chunk, cloneDeep, uniqBy, countBy } from "lodash";
-const testData = [
-  {
-    id: "3clubs",
-    isSelected: true,
-    rank: "6",
-    sortKey: "3",
-    suit: "clubs",
-  },
-  {
-    id: "3clubs",
-    isSelected: true,
-    rank: "6",
-    sortKey: "3",
-    suit: "clubs",
-  },
-  {
-    id: "3clubs",
-    isSelected: true,
-    rank: "6",
-    sortKey: "3",
-    suit: "clubs",
-  },
-  {
-    id: "3clubs",
-    isSelected: true,
-    rank: "6",
-    sortKey: "3",
-    suit: "clubs",
-  },
-  {
-    id: "3clubs",
-    isSelected: true,
-    rank: "5",
-    sortKey: "3",
-    suit: "clubs",
-  },
-  {
-    id: "3clubs",
-    isSelected: true,
-    rank: "5",
-    sortKey: "3",
-    suit: "clubs",
-  },
-  {
-    id: "clubs",
-    isSelected: true,
-    rank: "4",
-    sortKey: "3",
-    suit: "clubs",
-  },
-  {
-    id: "clubs",
-    isSelected: true,
-    rank: "4",
-    sortKey: "3",
-    suit: "clubs",
-  },
-];
+let cardInfo = {
+  cardType: "",
+  matchLength: 0,
+  addCard: 0,
+  maxCard: "",
+};
+ // 排序
+ function sortPoker(arr) {
+  arr.sort((a, b) => {
+    const indexA = sortOrder.indexOf(a);
+    const indexb = sortOrder.indexOf(b);
+    return indexb - indexA;
+  });
+}
+
+// const testData = [
+//   {
+//     id: "3clubs",
+//     isSelected: true,
+//     rank: "6",
+//     sortKey: "3",
+//     suit: "clubs",
+//   },
+//   {
+//     id: "3clubs",
+//     isSelected: true,
+//     rank: "6",
+//     sortKey: "3",
+//     suit: "clubs",
+//   },
+//   {
+//     id: "3clubs",
+//     isSelected: true,
+//     rank: "6",
+//     sortKey: "3",
+//     suit: "clubs",
+//   },
+//   {
+//     id: "3clubs",
+//     isSelected: true,
+//     rank: "6",
+//     sortKey: "3",
+//     suit: "clubs",
+//   },
+//   {
+//     id: "3clubs",
+//     isSelected: true,
+//     rank: "5",
+//     sortKey: "3",
+//     suit: "clubs",
+//   },
+//   {
+//     id: "3clubs",
+//     isSelected: true,
+//     rank: "5",
+//     sortKey: "3",
+//     suit: "clubs",
+//   },
+//   {
+//     id: "clubs",
+//     isSelected: true,
+//     rank: "4",
+//     sortKey: "3",
+//     suit: "clubs",
+//   },
+//   {
+//     id: "clubs",
+//     isSelected: true,
+//     rank: "4",
+//     sortKey: "3",
+//     suit: "clubs",
+//   },
+// ];
 const AscentSortOrder = cloneDeep(sortOrder).reverse();
 // A
 export function checkSingle(cards) {
-  return cards.length === 1;
+  const isValid = cards.length === 1;
+  if (isValid) {
+    cardInfo = {
+      cardType: "SINGLE",
+      matchLength: 1,
+      addCard: 0,
+      maxCard: cards[0].sortKey,
+    };
+  }
+  return isValid && cardInfo;
 }
 
 // AAAA
 export function checkBomb(cards) {
   if (cards.length !== 4) return false;
   const cardsNumbers = cards.map((el) => el.rank);
-  return cardsNumbers.every((el) => el === cardsNumbers[0]);
+  const isValid = cardsNumbers.every((el) => el === cardsNumbers[0]);
+  if (isValid) {
+    cardInfo = {
+      cardType: "BOMB",
+      matchLength: 4,
+      addCard: 0,
+      maxCard: cards[0].rank,
+    };
+  }
+  return isValid && cardInfo;
 }
 
 // AA
 export function checkDouble(cards) {
   if (cards.length !== 2) return false;
-  return cards[0].rank === cards[1].rank;
+  const isValid = cards[0].sortKey === cards[1].sortKey;
+  if (isValid) {
+    cardInfo = {
+      cardType: "DOUBLE",
+      matchLength: 2,
+      addCard: 0,
+      maxCard: cards[0].sortKey,
+    };
+  }
+  return isValid && cardInfo;
 }
 
 // JJ
 export function checkJBOMB(cards) {
   if (cards.length !== 2) return false;
   if (cards.length === 2) {
-    return cards.every((el) => el.rank === "JOKER");
+    const isValid = cards.every((el) => el.rank === "JOKER");
+    if (isValid) {
+      cardInfo = {
+        cardType: "JBOMB",
+        matchLength: 0,
+        addCard: 0,
+        maxCard: "",
+      };
+    }
+    return isValid && cardInfo;
   }
 }
 
@@ -89,7 +140,16 @@ export function checkJBOMB(cards) {
 export function checkTriple(cards) {
   if (cards.length !== 3) return false;
   const card1 = cards[0].rank;
-  return cards.every((el) => el.rank === card1);
+  const isValid = cards.every((el) => el.rank === card1);
+  if (isValid) {
+    cardInfo = {
+      cardType: "TRIPLE",
+      matchLength: 3,
+      addCard: 0,
+      maxCard: card1,
+    };
+  }
+  return isValid && cardInfo;
 }
 
 // AAAB
@@ -98,10 +158,28 @@ export function checkTriple1(cards) {
 
   if (cards[0].rank === cards[1].rank) {
     // AAAB
-    return checkTriple(cloneCards.slice(2)) && "TRIPLE1";
+    const isValid = checkTriple(cloneCards.slice(0, 3));
+    if (isValid) {
+      cardInfo = {
+        cardType: "TRIPLE1",
+        matchLength: 3,
+        addCard: 1,
+        maxCard: cards[0].rank,
+      };
+    }
+    return isValid && cardInfo;
   } else {
     // BAAA
-    return checkTriple(cloneCards.slice(-3)) && "TRIPLE1";
+    const isValid = checkTriple(cloneCards.slice(-3));
+    if (isValid) {
+      cardInfo = {
+        cardType: "TRIPLE1",
+        matchLength: 3,
+        addCard: 1,
+        maxCard: cards[1].rank,
+      };
+    }
+    return isValid && cardInfo;
   }
 }
 
@@ -110,20 +188,46 @@ export function checkTriple2(cards) {
   const cloneCards = cloneDeep(cards);
   if (cards[0].rank === cards[2].rank) {
     if (checkTriple(cloneCards.slice(0, 3))) {
-      return checkDouble(cloneCards.slice(-2)) && "checkTriple2";
+      const isValid = checkDouble(cloneCards.slice(-2));
+      if (isValid) {
+        cardInfo = {
+          cardType: "checkTriple2",
+          matchLength: 3,
+          addCard: 2,
+          maxCard: cards[0].rank,
+        };
+      }
+      return isValid && "checkTriple2";
     }
   } else {
     if (checkTriple(cloneCards.slice(-3))) {
-      return checkDouble(cloneCards.slice(0, 2)) && "checkTriple2";
+      const isValid = checkDouble(cloneCards.slice(0, 2));
+      if (isValid) {
+        cardInfo = {
+          cardType: "checkTriple2",
+          matchLength: 3,
+          addCard: 1,
+          maxCard: cards[2].rank,
+        };
+      }
+      return isValid && "checkTriple2";
     }
   }
   return false;
 }
-
 // continuously ABCDEF
 export function checkContinuously(cards) {
+  const NOT_ALLOW_RANK = ["2", "little", "big"];
   if (cards.length < 5) return false;
-  const nums = cards.map((el) => el.rank);
+
+  // 顺里面不能包括2，JOKER
+  const isValid = NOT_ALLOW_RANK.some((el) => {
+    return cards.some((card) => card.rank === el);
+  });
+  console.log(isValid, "isValid");
+  if (isValid) return false;
+
+  const nums = cards.map((el) => el.sortKey);
   let index = AscentSortOrder.indexOf(nums[0]);
   const isContinuously = nums.every((el) => {
     console.log(el, AscentSortOrder[index], index);
@@ -131,7 +235,15 @@ export function checkContinuously(cards) {
     index++;
     return isEqual;
   });
-  return isContinuously;
+  if (isContinuously) {
+    cardInfo = {
+      cardType: "CONSEQUENT",
+      matchLength: cards.length,
+      addCard: 0,
+      maxCard: cards[0].rank,
+    };
+  }
+  return isContinuously && cardInfo;
 }
 
 export function checkAABBCC(cards) {
@@ -144,8 +256,6 @@ export function checkAABBCC(cards) {
   });
   if (!isSame) return false;
 
-  console.log(isSame, "isSame");
-
   const uniqueArr = uniqBy(cards, "rank");
   const nums = uniqueArr.map((el) => el.rank);
   let index = AscentSortOrder.indexOf(nums[0]);
@@ -155,8 +265,15 @@ export function checkAABBCC(cards) {
     index++;
     return isEqual;
   });
-  console.log(isContinuously, "uniqueArr");
-  return isContinuously;
+  if (isContinuously) {
+    cardInfo = {
+      cardType: "DOUBLE_CONSEQUENT",
+      matchLength: cards.length / 2,
+      addCard: 0,
+      maxCard: cards[0].rank,
+    };
+  }
+  return isContinuously && cardInfo;
 }
 
 export function checkAAABBB(cards) {
@@ -180,8 +297,15 @@ export function checkAAABBB(cards) {
     index++;
     return isEqual;
   });
-  console.log(isContinuously, "uniqueArr");
-  return isContinuously;
+  if (isContinuously) {
+    cardInfo = {
+      cardType: "TRIPLE_CONSEQUENT",
+      matchLength: cards.length / 3,
+      addCard: 0,
+      maxCard: cards[0].rank,
+    };
+  }
+  return isContinuously && cardInfo;
 }
 
 // 飞机带单
@@ -198,13 +322,22 @@ function checkAAABBBCD(cards, n) {
       Bgroup.push(key);
     }
   });
-  return AAAgroup.length >= 2 && AAAgroup.length === Bgroup.length;   
+  const isValid = AAAgroup.length >= 2 && AAAgroup.length === Bgroup.length;
+  if (isValid) {
+    cardInfo = {
+      cardType: n === 1? "AIRPLANE1": "AIRPLANE2",
+      matchLength: AAAgroup.length,
+      addCard: n,
+      maxCard: sortPoker(AAAgroup)[0],
+    };
+  }
+  return isValid && cardInfo;
 }
 
 // 四带二（两张单牌或者两站对）
 function checkAAAABC(cards, n) {
-  cards = testData;
   const groups = countBy(cards, "rank");
+  console.log(groups, "groups");
   const keys = Object.keys(groups);
   let AAAAgroup = [];
   let Bgroup = [];
@@ -216,67 +349,61 @@ function checkAAAABC(cards, n) {
       Bgroup.push(key);
     }
   });
-  return AAAAgroup.length === 1 && Bgroup.length === 2;
+  const isValid = AAAAgroup.length === 1 && Bgroup.length === 2;
+  if (isValid) {
+    cardInfo = {
+      cardType: n === 1? "FOUR1":"FOUR2",
+      matchLength: 1,
+      addCard: n,
+      maxCard: AAAAgroup[0],
+    };
+  }
+  return isValid && cardInfo;
 }
 function checkType(cards) {
   const cardsLength = cards.length;
   if (cardsLength === 1) {
-    return checkSingle(cards) && "SINGLE";
+    return checkSingle(cards);
   }
   // 对牌 或者 王炸
   if (cardsLength === 2) {
-    if (checkDouble(cards)) {
-      return "DOUBLE";
-    }
-    return checkJBOMB(cards) && "JBOMB";
+    return checkDouble(cards) || checkJBOMB(cards);
   }
   // 三张牌
   if (cardsLength === 3) {
-    return checkTriple(cards) && "TRIPLE";
+    return checkTriple(cards);
   }
 
   if (cardsLength === 4) {
     // 炸弹
-    if (checkBomb(cards)) {
-      return "BOMB";
-    }
     // 三带一
-    return checkTriple1(cards) && "TRIPLE1";
+    return checkBomb(cards) || checkTriple1(cards);
   }
 
   // 三带二
   if (cardsLength === 5) {
-    if (checkTriple2(cards)) return "TRIPLE2";
+    const isValid = checkTriple2(cards);
+    if (isValid) return isValid;
   }
 
   // 单顺
   if (cardsLength >= 5 && cardsLength <= 12) {
-    if (checkContinuously(cards)) return "CONSEQUENT";
+    const isValid = checkContinuously(cards);
+    if (isValid) return isValid;
   }
-  
+
   // 双顺 三顺
   if (cardsLength >= 6 && cardsLength % 2 === 0) {
-    if (checkAABBCC(cards)) {
-      return "DOUBLE_CONSEQUENT";
-    }
-    if (checkAAABBB(cards)) {
-      return "TRIPLE_CONSEQUENT";
-    }
+    const isValid = checkAABBCC(cards) || checkAAABBB(cards);
+    if (isValid) return isValid;
   }
   // 四带二
   if (cardsLength === 6) {
-    if (checkAAAABC(cards, 1)) return 'FOURANDONE';
+    return checkAAAABC(cards, 1);
   }
-  if (cardsLength === 8) {
-    if (checkAAAABC(cards, 2)) return 'FOURANDTWO';
-  }
+
   if (cardsLength >= 8) {
-    if (checkAAABBBCD(cards, 1)) {
-      return "AIRPLANE1";
-    }
-    if (checkAAABBBCD(cards, 2)) {
-      return "AIRPLANE2";
-    }
+    return checkAAABBBCD(cards, 1) || checkAAABBBCD(cards, 2) || checkAAAABC(cards, 2);
   }
   return false;
 }

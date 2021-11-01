@@ -47,9 +47,9 @@ export default {
       console.log(player.hands.length, playerNum, "手牌数量");
       const toBeDropIndexList = [];
       // 玩家选中的牌
-      const tempHitCards = cloneDeep(player.hands).filter((el, index) => {
+      const tempHitCards = cloneDeep(player.hands).filter((el) => {
         if (el.isSelected) {
-          toBeDropIndexList.push(index);
+          toBeDropIndexList.push(el.id);
         }
         return el.isSelected;
       });
@@ -59,7 +59,10 @@ export default {
       const toBeHitCardType = this.confirmToBeHitType(tempHitCards);
       if (toBeHitCardType) {
         toBeDropIndexList.forEach(el => {
-          player.hands.splice(el, 1);
+          console.log(el, 'el');
+          const index = player.hands.findIndex(el2 => el2.id === el);
+          console.log(index, 'index');
+          player.hands.splice(index, 1);
         })
       }
       return toBeHitCardType;
@@ -71,6 +74,7 @@ export default {
       );
       // 单牌
       const cardType = VALIDATE.checkType(hitCards);
+      console.log(cardType, 'cardType');
       return cardType;
     },
   },

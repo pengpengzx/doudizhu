@@ -307,24 +307,25 @@ export default {
       this.point.y = e.changedTouches[0].clientY;
       let { x, y } = this.point;
       const touchDom = document.elementFromPoint(x, y);
+      if (!touchDom) return;
       // direction
 
       this.findTrueDom(touchDom);
     },
     findTrueDom(touchDom) {
       const id = touchDom.getAttribute("id");
-      const index = this.selectedCards.findIndex((el) => el.id === id);
+      if (!id) return false;
       const card = this.player1.hands.find((el) => el.id === id);
 
       if (this.selectedCardsTemp.indexOf(id) === -1) {
         this.selectedCardsTemp.push(id);
-        if (index === -1) {
           card.isSelected = !card.isSelected;
-        } else {
-          card.isSelected = !card.isSelected;
-        }
-      } else {
-        //
+
+        // if (index === -1) {
+        //   console.log(card, 'card');
+        // } else {
+        //   card.isSelected = !card.isSelected;
+        // }
       }
     },
     handstouchEnd() {
@@ -417,26 +418,7 @@ export default {
     // 出牌
     hit(player) {
       let { playerNum, nextTurn } = player;
-      // console.log(player.hands.length, playerNum, "手牌数量");
-      // const toBeDropIndexList = [];
-      // const tempHitCards = cloneDeep(player.hands).filter((el, index) => {
-      //   if (el.isSelected) {
-      //     toBeDropIndexList.push(index);
-      //   }
-      //   return el.isSelected;
-      // });
-      // if (tempHitCards && tempHitCards.length === 0) return;
 
-      // player.nowTurnHitCardsList = tempHitCards;
-      // const toBeHitCardType = this.confirmToBeHitType(tempHitCards);
-      // if (!toBeHitCardType) return playErrorAudio();
-      // return
-      // this.repeatFn(
-      //   toBeDropIndexList.length,
-      //   this.dropHandCard,
-      //   player,
-      //   toBeDropIndexList
-      // );
       if (playerNum === 1) {
         this.isMyHit = false;
         this.isShowHitCards = true;
@@ -567,6 +549,7 @@ export default {
       if (card.isSelected) {
         this.selectedCards.push(card);
       } else {
+        console.log(card, 'card');
         const index = this.selectedCards.findIndex((el) => el.id === card.id);
         this.selectedCards.splice(index, 1);
       }
