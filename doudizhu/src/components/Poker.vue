@@ -320,7 +320,7 @@ export default {
 
       if (this.selectedCardsTemp.indexOf(id) === -1) {
         this.selectedCardsTemp.push(id);
-          card.isSelected = !card.isSelected;
+        card.isSelected = !card.isSelected;
       }
     },
     handstouchEnd() {
@@ -411,8 +411,8 @@ export default {
     // 提示
     hint() {},
     playerHitHandler(params = null) {
-      this.player1.cardInfo = params; 
-      this.afterHitHandler(this.player1)
+      this.player1.cardInfo = params;
+      this.afterHitHandler(this.player1);
     },
     // 出牌
     afterHitHandler(player) {
@@ -437,16 +437,34 @@ export default {
         this.isMyHit = true;
         return;
       }
-      const nextPlayer = this.playerList[nextTurn - 1];
-      this.nextTurn(nextPlayer);
+      const computerInfo = this.playerList[nextTurn - 1];
+      this.computerTurn(computerInfo);
     },
-    async nextTurn(computer) {
-      // 延迟1s
+    async computerTurn(computer) {
+      // 延迟1s 触发电脑
       await sleep(1000);
-      if (computer.playerNum === 2) this.player2HitCardsList = [];
-      if (computer.playerNum === 3) this.player3HitCardsList = [];
+      const cpuNumber = computer.playerNum;
+      if (cpuNumber === 2) this.player2HitCardsList = [];
+      if (cpuNumber === 3) this.player3HitCardsList = [];
 
-      computerHitCard(computer, this.playerList);
+      const isCPUhited = computerHitCard(computer, this.playerList);
+      if (!isCPUhited) {
+        playAudio("notCall");
+        if (cpuNumber === 2) {
+          this.isShowHitCardsPlayer2 = true;
+          computer.nowTurnHitCardsList = [];
+          return this.computerTurn(this.player3);
+        }
+        if (computer === 3) {
+          this.isShowHitCardsPlayer3 = true;
+          computer.nowTurnHitCardsList = [];
+          this.player1.nowTurnHitCardsList = [];
+          this.isMyHit = true;
+          return;
+        }
+      }
+      playAudio("hit");
+      this.afterHitHandler(computer);
     },
     dropHandCard(palyer, toBeDropIndexList) {
       palyer.hands.splice(toBeDropIndexList.pop(), 1);
@@ -462,7 +480,7 @@ export default {
       if (card.isSelected) {
         this.selectedCards.push(card);
       } else {
-        console.log(card, 'card');
+        console.log(card, "card");
         const index = this.selectedCards.findIndex((el) => el.id === card.id);
         this.selectedCards.splice(index, 1);
       }
