@@ -6,8 +6,8 @@ let cardInfo = {
   addCard: 0,
   maxCard: "",
 };
- // 排序
- function sortPoker(arr) {
+// 排序
+function sortPoker(arr) {
   arr.sort((a, b) => {
     const indexA = sortOrder.indexOf(a);
     const indexb = sortOrder.indexOf(b);
@@ -325,7 +325,7 @@ function checkAAABBBCD(cards, n) {
   const isValid = AAAgroup.length >= 2 && AAAgroup.length === Bgroup.length;
   if (isValid) {
     cardInfo = {
-      cardType: n === 1? "AIRPLANE1": "AIRPLANE2",
+      cardType: n === 1 ? "AIRPLANE1" : "AIRPLANE2",
       matchLength: AAAgroup.length,
       addCard: n,
       maxCard: sortPoker(AAAgroup)[0],
@@ -352,7 +352,7 @@ function checkAAAABC(cards, n) {
   const isValid = AAAAgroup.length === 1 && Bgroup.length === 2;
   if (isValid) {
     cardInfo = {
-      cardType: n === 1? "FOUR1":"FOUR2",
+      cardType: n === 1 ? "FOUR1" : "FOUR2",
       matchLength: 1,
       addCard: n,
       maxCard: AAAAgroup[0],
@@ -403,37 +403,29 @@ function checkType(cards) {
   }
 
   if (cardsLength >= 8) {
-    return checkAAABBBCD(cards, 1) || checkAAABBBCD(cards, 2) || checkAAAABC(cards, 2);
+    return (
+      checkAAABBBCD(cards, 1) ||
+      checkAAABBBCD(cards, 2) ||
+      checkAAAABC(cards, 2)
+    );
   }
   return false;
 }
 
+function isBiggerUtils(maxCard, comMaxCard) {
+  let i = sortOrder.indexOf(maxCard);
+  let k = sortOrder.indexOf(comMaxCard);
+  return i - k > 0;
+}
 export function isBigger(player, computer) {
-  console.log(player, player, 'asdaskdjl');
-    const {cardType, maxCard} = player.cardInfo 
-    const comMaxCard = computer.cardInfo.maxCard;
-    let isBigger = false;
-    switch (cardType) {
-      case 'SINGLE': {
-        let i = sortOrder.indexOf(maxCard);
-        let k = sortOrder.indexOf(comMaxCard);
-        isBigger = i - k > 0;
-        break;
-      }
-      case 'DOUBLE': {
-        let i = sortOrder.indexOf(maxCard);
-        let k = sortOrder.indexOf(comMaxCard);
-        isBigger = i - k > 0;
-        break;
-      }
-      case 'TRIPLE': {
-        let i = sortOrder.indexOf(maxCard);
-        let k = sortOrder.indexOf(comMaxCard);
-        isBigger = i - k > 0;
-        break;
-      }
-    }
-    return isBigger;
+  const { cardType, maxCard } = player.cardInfo;
+  const comMaxCard = computer.cardInfo.maxCard;
+  let isBigger = false;
+
+  if (cardType === "SINGLE" || cardType === "DOUBLE" || cardType === "TRIPLE") {
+    isBigger = isBiggerUtils(maxCard, comMaxCard);
+  }
+  return isBigger;
 }
 
 const validate = {

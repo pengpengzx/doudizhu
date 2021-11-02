@@ -5,7 +5,7 @@
 <script>
 import { AUDIO_MAP } from "@/constant/audio.js";
 import cloneDeep from "lodash/cloneDeep.js";
-import { playErrorAudio } from "@/utils/bgm.js";
+import { playBGM, playErrorAudio } from "@/utils/bgm.js";
 import VALIDATE, { isBigger } from "@/utils/validate.js";
 
 export default {
@@ -38,6 +38,7 @@ export default {
         if (this.type === "hit") {
           this.playerHitHandler();
         } else {
+          if (this.type === "start") playBGM();
           await this.audio.play();
           this.$emit("clickHandler");
         }

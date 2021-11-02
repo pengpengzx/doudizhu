@@ -1,10 +1,12 @@
 
+const bgm = new Audio(require("../assets/audio/bg.mp3"));
 export function playBGM() {
-  const bgm = new Audio(require("../assets/audio/bg.mp3"));
   // 循环
   bgm.loop = true;
-  bgm.preload = "auto";
   bgm.play();
+  document.addEventListener("WeixinJSBridgeReady", function () {
+    bgm.play();
+ }, false);
 }
 
 // 操作错误

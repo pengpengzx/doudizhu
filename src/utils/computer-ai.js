@@ -129,9 +129,9 @@ function triple() {
   // 没有的话结束计算
   if (!hasMoreBigerCard) return hasMoreBigerCard;
   const hitCards = tripleGroup[index];
-  hitCards.forEach(el => {
+  hitCards.forEach((el) => {
     el.isSelected = true;
-  })
+  });
 
   playerInfo.cardInfo = {
     cardType: "TRIPLE",
@@ -280,6 +280,9 @@ export default function computerHitCard(player, playerList) {
 
 function computerFreeAction() {
   let { singleGroup, doubleGroup, tripleGroup, bombGroup } = comCardGroup;
+  let hitCards = [];
+  let cInfo = null;
+
   // if (tripleGroup.length > 0) {
   isLockSingleGroup = singleGroup.length === 0 || isLockSingleGroup;
   isLockDoubleGroup = doubleGroup.length === 0 || isLockDoubleGroup;
@@ -298,32 +301,40 @@ function computerFreeAction() {
       maxCard: hitCard.sortKey,
     };
     return true;
-  }
-  if (isLockSingleGroup && doubleGroup.length > 0) {
-    const hitCards = doubleGroup[0];
-    hitCards.forEach((el) => {
-      el.isSelected = true;
-    });
-    playerInfo.cardInfo = {
-      cardType: "DOUBLE",
+  } else if (isLockSingleGroup && doubleGroup.length > 0) {
+    hitCards = doubleGroup[0];
+    cInfo = {
+      type: "DOUBLE",
       matchLength: 2,
       addCard: 0,
-      maxCard: hitCards[0].sortKey,
     };
-    return true;
-  }
-
-  if (tripleGroup.length > 0) {
-    const hitCards = tripleGroup[0];
-    hitCards.forEach((el) => {
-      el.isSelected = true;
-    });
-    playerInfo.cardInfo = {
-      cardType: "TRIPLE",
+  } else if (tripleGroup.length > 0) {
+    hitCards = tripleGroup[0];
+    cInfo = {
+      type: "TRIPLE",
       matchLength: 3,
       addCard: 0,
-      maxCard: hitCards[0].sortKey,
+    };
+  } else if (bombGroup.length > 0) {
+    hitCards = bombGroup[0];
+    cInfo = {
+      addCard: 0,
+      type: "BOMB",
+      matchLength: 4,
     };
   }
-  // 大顺子
+  return selectedCards(hitCards, cInfo);
+}
+
+function selectedCards(hitCards, cInfo) {
+  hitCards.forEach((el) => {
+    el.isSelected = true;
+  });
+  playerInfo.cardInfo = {
+    cardType: cInfo.type,
+    matchLength: cInfo.matchLength,
+    addCard: cInfo.addCard || "0",
+    maxCard: hitCards[0].sortKey,
+  };
+  return true;
 }

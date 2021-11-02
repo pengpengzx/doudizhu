@@ -118,6 +118,7 @@
           class="ui-btn primary"
           @clickHandler="startGame()"
           name="开始游戏"
+          type="start"
         />
       </div>
       <div
@@ -187,7 +188,6 @@
 </template>
 
 <script>
-import { playBGM } from "@/utils/bgm.js";
 import { sleep } from "@/utils/sleep.js";
 import computerHitCard from "@/utils/computer-ai.js";
 import { playAudio } from "@/constant/audio.js";
@@ -272,7 +272,6 @@ export default {
   methods: {
     cloneDeep,
     async startGame() {
-      playBGM();
       this.notStart = false;
       this.isShowPoker = true;
       await this.deal();
