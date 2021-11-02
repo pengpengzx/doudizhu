@@ -5,12 +5,15 @@ let playerInfo = null;
 let againstPlayer = null;
 let hitCard = [];
 let comCardGroup = {
-  singGroup: [],
+  singleGroup: [],
   doubleGroup: [],
   tripleGroup: [],
   bombGroup: [],
+  abcdeGroup: [],
 };
-
+let isLockSingleGroup = false;
+let isLockDoubleGroup = false;
+let isLockTripleGroup = false;
 // 工具方法 等同与_groupBy
 function groupBy(hands, key) {
   const cardMap = {};
@@ -26,23 +29,21 @@ function groupBy(hands, key) {
 
 // A
 function single() {
-  console.log("single");
   const { hands, playerNum } = playerInfo;
   const cardInfo = againstPlayer.cardInfo;
   const maxCard = cardInfo.maxCard;
-  const singGroup = comCardGroup.singGroup;
-  const index = singGroup.findIndex((el) => {
+  const singleGroup = comCardGroup.singleGroup;
+  const index = singleGroup.findIndex((el) => {
     let i = sortOrder.indexOf(el.sortKey);
     let j = sortOrder.indexOf(maxCard);
     return i - j > 0;
   });
   // 是否有更大的牌出
   let hasMoreBigerCard = index > -1;
-  console.log(hasMoreBigerCard, 'hasMoreBigerCard');
-  console.log(maxCard, 'maxCardmaxCardmaxCardmaxCard');
+
   // 没有的话结束计算
   if (!hasMoreBigerCard) return hasMoreBigerCard;
-  const hitCard = singGroup[index];
+  const hitCard = singleGroup[index];
   const cardid = hitCard.id;
 
   hands.forEach((el) => {
@@ -60,7 +61,6 @@ function single() {
   console.log(`要出的牌${hitCard.sortKey}`, `playerInfo${playerNum}`);
   return hasMoreBigerCard;
 }
-
 // AA
 function double() {
   console.log("double");
@@ -111,9 +111,40 @@ function double() {
   return toBeHit;
 }
 
+function triple() {
+  const { hands } = playerInfo;
+  const cardInfo = againstPlayer.cardInfo;
+  const maxCard = cardInfo.maxCard;
+  const tripleGroup = comCardGroup.tripleGroup;
+
+  if (tripleGroup.length === 0) return false;
+  const index = tripleGroup.findIndex((el) => {
+    let i = sortOrder.indexOf(el[0].sortKey);
+    let j = sortOrder.indexOf(maxCard);
+    return i - j > 0;
+  });
+  // 是否有更大的牌出
+  let hasMoreBigerCard = index > -1;
+
+  // 没有的话结束计算
+  if (!hasMoreBigerCard) return hasMoreBigerCard;
+  const hitCards = tripleGroup[index];
+  hitCards.forEach(el => {
+    el.isSelected = true;
+  })
+
+  playerInfo.cardInfo = {
+    cardType: "TRIPLE",
+    matchLength: 3,
+    addCard: 0,
+    maxCard: hitCards[0].sortKey,
+  };
+  return true;
+}
+function bomb() {}
+// 把要出的牌从手牌里删除
 function computerDropTheCards() {
   const selectedCards = filterSelectedCard();
-  console.log(selectedCards, 'selectedCards');
   playerInfo.nowTurnHitCardsList = selectedCards;
   selectedCards.forEach((el) => {
     const index = playerInfo.hands.findIndex((el2) => el2.id === el.id);
@@ -130,7 +161,7 @@ function filterSelectedCard() {
 }
 
 // 初始化当前数据（要对付的玩家和他出的牌）
-function initGameInfo(player, playerList) {
+function initGameInfo(playerList) {
   // 上一个玩家
   againstPlayer = playerList[playerInfo.preTurn - 1];
   // 上一个玩家出的牌
@@ -140,17 +171,8 @@ function initGameInfo(player, playerList) {
     againstPlayer = playerList[againstPlayer.preTurn - 1];
     hitCard = againstPlayer.nowTurnHitCardsList;
   }
-  // 上上家也要不起
-  if (hitCard.length === 0) {
-    if (player.preTurn === 1) {
-      // 电脑的逻辑，自己随便走
-      console.log("电脑的逻辑，自己随便走,剩下两个人都要不起，随便出牌");
-      return false;
-    }
-    console.log("2个人都要不起，随便出牌");
-    return false;
-  }
-  return hitCard.length;
+  // 等于0就是2个人都要不起
+  return hitCard.length > 0;
 }
 // 给电脑当前手牌分组
 function formatCardsGroup() {
@@ -160,16 +182,17 @@ function formatCardsGroup() {
 
   const doubleList = [];
   const cardMap = groupBy(hands, "sortKey");
-  const singGroup = [],
+  const singleGroup = [],
     doubleGroup = [],
     tripleGroup = [],
-    bombGroup = [];
+    bombGroup = [],
+    abcdeGroup = [];
 
   const reStructCardsGroup = [];
   for (const key in cardMap) {
     const cards = cardMap[key];
     if (cards.length === 1) {
-      singGroup.push(cards[0]);
+      singleGroup.push(cards[0]);
     }
     if (cards.length === 2) {
       doubleList.push(key);
@@ -188,18 +211,16 @@ function formatCardsGroup() {
   }
   // 排序
   let isSingle = true; // 手否是处理单牌的情况
-  sortCard(singGroup, isSingle);
+  sortCard(singleGroup, isSingle);
   sortCard(doubleGroup);
   sortCard(tripleGroup);
   sortCard(bombGroup);
-
   comCardGroup = {
-    singGroup,
+    singleGroup,
     doubleGroup,
     tripleGroup,
     bombGroup,
   };
-  console.log(comCardGroup, "ssss");
 }
 
 function sortCard(collection, isSingle) {
@@ -218,23 +239,91 @@ function sortCard(collection, isSingle) {
   }
 }
 
+function findAllABCDE() {
+  const hands = playerInfo.hands;
+  console.log(hands, "hands");
+}
+
 export default function computerHitCard(player, playerList) {
   playerInfo = player;
-  const hasHitCard = initGameInfo(player, playerList);
-
-  // 其他两家都要不起，随意走
-  if (!hasHitCard) return false;
-  // 确定出牌的类型
-  const type = againstPlayer.cardInfo.cardType;
+  const hasHitCard = initGameInfo(playerList);
+  let isComputerFinished = false;
+  console.log(hasHitCard, "hasHitCard");
+  // 格式化手牌，按A，AA，AAA，AAAA分牌
   formatCardsGroup();
-  let isCPUhited = false;
-  switch (type) {
-    case "SINGLE":
-      isCPUhited = single();
-      break;
-    case "DOUBLE":
-      isCPUhited = double();
+  // 其他两家都要不起，随意走
+  if (!hasHitCard) {
+    isComputerFinished = computerFreeAction();
+  } else {
+    // 确定出牌的类型
+    const type = againstPlayer.cardInfo.cardType;
+    switch (type) {
+      case "SINGLE":
+        isComputerFinished = single();
+        break;
+      case "DOUBLE":
+        isComputerFinished = double();
+        break;
+      case "TRIPLE":
+        isComputerFinished = triple();
+        break;
+      case "BOMB":
+        isComputerFinished = bomb();
+        break;
+    }
   }
+
+  // 把要出的牌从手牌里删除
   computerDropTheCards();
-  return isCPUhited;
+  return isComputerFinished;
+}
+
+function computerFreeAction() {
+  let { singleGroup, doubleGroup, tripleGroup, bombGroup } = comCardGroup;
+  // if (tripleGroup.length > 0) {
+  isLockSingleGroup = singleGroup.length === 0 || isLockSingleGroup;
+  isLockDoubleGroup = doubleGroup.length === 0 || isLockDoubleGroup;
+  isLockTripleGroup = tripleGroup.length === 0 || isLockTripleGroup;
+  if (singleGroup.length > 0) {
+    console.log(singleGroup, "singleGroup");
+    const hitCard = singleGroup[0];
+    const sortKey = hitCard.sortKey;
+    const i = sortOrder.indexOf(sortKey);
+    console.log(i, "index");
+    hitCard.isSelected = true;
+    playerInfo.cardInfo = {
+      cardType: "SINGLE",
+      matchLength: 1,
+      addCard: 0,
+      maxCard: hitCard.sortKey,
+    };
+    return true;
+  }
+  if (isLockSingleGroup && doubleGroup.length > 0) {
+    const hitCards = doubleGroup[0];
+    hitCards.forEach((el) => {
+      el.isSelected = true;
+    });
+    playerInfo.cardInfo = {
+      cardType: "DOUBLE",
+      matchLength: 2,
+      addCard: 0,
+      maxCard: hitCards[0].sortKey,
+    };
+    return true;
+  }
+
+  if (tripleGroup.length > 0) {
+    const hitCards = tripleGroup[0];
+    hitCards.forEach((el) => {
+      el.isSelected = true;
+    });
+    playerInfo.cardInfo = {
+      cardType: "TRIPLE",
+      matchLength: 3,
+      addCard: 0,
+      maxCard: hitCards[0].sortKey,
+    };
+  }
+  // 大顺子
 }

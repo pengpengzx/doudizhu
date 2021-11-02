@@ -6,7 +6,7 @@
 import { AUDIO_MAP } from "@/constant/audio.js";
 import cloneDeep from "lodash/cloneDeep.js";
 import { playErrorAudio } from "@/utils/bgm.js";
-import VALIDATE, { isBigger }from "@/utils/validate.js";
+import VALIDATE, { isBigger } from "@/utils/validate.js";
 
 export default {
   name: "UIButton",
@@ -48,40 +48,18 @@ export default {
     async playerHitHandler() {
       try {
         this.filterSelectedCard();
-        const isFreeHit = this.isFreeHit();
-        console.log(isFreeHit, "isFreeHit");
-        let isValid = false;
-        if (isFreeHit) {
-          isValid = this.validateCardsType();
-          this.player.cardInfo = isValid;
-          console.log(isValid, '');
-        } else {
-          isValid = this.validateCardsRank();
-        }
-        console.log(isValid, "isValidisValidisValid");
-        if (!isValid) {
-          return playErrorAudio();
-        } else {
-          await this.audio.play();
-          this.$emit("clickHandler");
-        }
+        // 没有选中的牌 返回
+        const isValid = this.validateCardsRank();
+        if (!isValid) return playErrorAudio();
+
+        // 通过校验后赋值
+        this.player.cardInfo = isValid;
+        this.dropTheCards(this.selectedCards);
+        await this.audio.play();
+        this.$emit("clickHandler");
       } catch (error) {
         console.log(error);
       }
-    },
-    // 校验出的牌是否符合规则
-    validateCardsType() {
-      // 玩家选中的牌
-      const selectedCards = this.selectedCards;
-      // 没有选中的牌 返回
-      if (selectedCards && selectedCards.length === 0) return false;
-
-      this.player.nowTurnHitCardsList = selectedCards;
-
-      const toBeHitCardType = VALIDATE.checkType(selectedCards);
-
-      toBeHitCardType && this.dropTheCards(selectedCards);
-      return toBeHitCardType;
     },
     // 点击出牌按钮后 校验出的牌是否符合规则 确定没问题后删除手牌上对应的牌
     dropTheCards(toBeDropIndexList) {
@@ -95,13 +73,15 @@ export default {
       const tempHitCards = cloneDeep(this.player.hands).filter((el) => {
         return el.isSelected;
       });
+
       this.selectedCards = tempHitCards;
+      this.player.nowTurnHitCardsList = tempHitCards;
     },
     // 其他玩家是否都 要不起
     isFreeHit() {
       // 上一个玩家
       let againstPlayer = this.playerList[this.player.preTurn - 1];
-      
+
       // 上一个玩家出的牌
       let hitCard = againstPlayer.nowTurnHitCardsList;
       // 如果上一家没有出牌 则去找上上家
@@ -109,20 +89,31 @@ export default {
         againstPlayer = this.playerList[againstPlayer.preTurn - 1];
         hitCard = againstPlayer.nowTurnHitCardsList;
       }
-      this.againstPlayer = againstPlayer; 
+      this.againstPlayer = againstPlayer;
       return hitCard.length === 0;
     },
     validateCardsRank() {
-      // 确定出牌的类型
-      const type = this.againstPlayer.cardInfo.cardType;
-      const maxCard = this.againstPlayer.cardInfo.maxCard;
-      console.log(maxCard, "maxCard");
-      const target = type.slice(1);
-      const tempType = type.replace(target, target.toLowerCase());
-      const isValid = VALIDATE[`check${tempType}`](this.selectedCards);
-      const isBiggerThen = isBigger(this.player, this.againstPlayer);
-      console.log(isBiggerThen, isValid, "isValid");
-      return isValid && isBiggerThen;
+      let isValid = false;
+      // 没有选中的牌
+      if (this.selectedCards.length === 0) return isValid;
+      // 是否其他2个玩家都是要不起
+      const isFreeHit = this.isFreeHit();
+      if (isFreeHit) {
+        // 其他玩家都要不起
+        isValid = VALIDATE.checkType(this.selectedCards);
+        return isValid;
+      } else {
+        // 确定出牌的类型
+        const type = this.againstPlayer.cardInfo.cardType;
+        const target = type.slice(1);
+        const tempType = type.replace(target, target.toLowerCase());
+        const tempPlayer = cloneDeep(this.player);
+        isValid = VALIDATE[`check${tempType}`](this.selectedCards, tempPlayer);
+        if (!isValid) return false;
+        tempPlayer.cardInfo = isValid;
+        const isBiggerThen = isBigger(tempPlayer, this.againstPlayer);
+        return isBiggerThen && isValid;
+      }
     },
   },
 };

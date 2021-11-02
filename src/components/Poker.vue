@@ -371,13 +371,6 @@ export default {
         }, 30);
       });
     },
-    printInfo() {
-      console.log(this.pokers, "牌池");
-      console.log(this.playerList, "玩家列表");
-      console.log(this.player1, "player1");
-      console.log(this.player2, "player2");
-      console.log(this.player3, "player3");
-    },
     isDoubleReward(result) {
       this.player1.isDouble = result;
       this.isShowDoubleTip = false;
@@ -442,9 +435,8 @@ export default {
       if (cpuNumber === 2) this.player2HitCardsList = [];
       if (cpuNumber === 3) this.player3HitCardsList = [];
 
-      const isCPUhited = computerHitCard(computer, this.playerList);
-      console.log(isCPUhited, "isCPUhited");
-      if (!isCPUhited) {
+      const isComputerHited = computerHitCard(computer, this.playerList);
+      if (!isComputerHited) {
         playAudio("notCall");
         if (cpuNumber === 2) {
           this.isShowHitCardsPlayer2 = true;

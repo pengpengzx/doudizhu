@@ -408,15 +408,28 @@ function checkType(cards) {
   return false;
 }
 
-export function isBigger(myCardInfo, comCardInfo) {
-    const {cardType, maxCard} = myCardInfo 
-    const comMaxCard = comCardInfo.maxCard;
+export function isBigger(player, computer) {
+  console.log(player, player, 'asdaskdjl');
+    const {cardType, maxCard} = player.cardInfo 
+    const comMaxCard = computer.cardInfo.maxCard;
     let isBigger = false;
     switch (cardType) {
       case 'SINGLE': {
         let i = sortOrder.indexOf(maxCard);
         let k = sortOrder.indexOf(comMaxCard);
-        isBigger = i - k;
+        isBigger = i - k > 0;
+        break;
+      }
+      case 'DOUBLE': {
+        let i = sortOrder.indexOf(maxCard);
+        let k = sortOrder.indexOf(comMaxCard);
+        isBigger = i - k > 0;
+        break;
+      }
+      case 'TRIPLE': {
+        let i = sortOrder.indexOf(maxCard);
+        let k = sortOrder.indexOf(comMaxCard);
+        isBigger = i - k > 0;
         break;
       }
     }
