@@ -1,30 +1,68 @@
 import sortOrder from "@/constant/order.js";
+import cloneDeep from "lodash/cloneDeep.js";
+// import groupBy from "lodash/groupBy.js";
+
 let computer = null;
 let againstPlayer = null;
 let hitCard = [];
 
-function single () {
-  console.log('single');
-  const { hands, playerNum } = computer;
+// 工具方法 等同与_groupBy
+function groupBy(hands, key) {
   const cardMap = {};
-  const doubleList = [];
   hands.forEach((el) => {
-    if (cardMap[el.rank]) {
-      cardMap[el.rank].push(el);
+    if (cardMap[el[key]]) {
+      cardMap[el[key]].push(el);
     } else {
-      cardMap[el.rank] = [el];
+      cardMap[el[key]] = [el];
     }
   });
+  return cardMap;
+}
+function single() {
+  console.log("single");
+  const { hands, playerNum } = computer;
+  const cardInfo = againstPlayer.cardInfo;
+  console.log(cardInfo);
+
+  const doubleList = [];
+  const cardMap = groupBy(hands, "sortKey");
+  const singGroup = [],
+    doubleGroup = [],
+    tripleGroup = [],
+    bombGroup = [];
+
+  console.log(singGroup, doubleGroup, tripleGroup, bombGroup);
+  const reStructCardsGroup = [];
   for (const key in cardMap) {
-    if (cardMap[key].length === 2) {
-      doubleList.push(key);
+    const cards = cardMap[key];
+    if (cards.length === 1) {
+      singGroup.push(cards[0]);
     }
+    if (cards.length === 2) {
+      doubleList.push(key);
+      doubleGroup.push(cards);
+    }
+    if (cards.length === 3) {
+      tripleGroup.push(cards);
+    }
+    if (cards.length === 4) {
+      bombGroup.push(cards);
+    }
+    reStructCardsGroup.push({
+      rank: key,
+      cards: cardMap[key],
+    });
   }
-  doubleList.sort((a, b) => {
+  console.log(singGroup, "singGroup");
+  console.log(doubleGroup, "doubleGroup");
+  console.log(tripleGroup, "tripleGroup");
+  console.log(bombGroup, "bombGroup");
+  singGroup.sort((a, b) => {
     const indexA = sortOrder.indexOf(a);
     const indexB = sortOrder.indexOf(b);
     return indexA - indexB;
   });
+  console.log(singGroup, 'singGrouptobehit');
   let toBeHit = "";
   for (let index = 0; index < doubleList.length; index++) {
     const element = doubleList[index];
@@ -42,17 +80,17 @@ function single () {
       el.isSelected = true;
     }
   });
-  const cardInfo = {
+  computer.cardInfo = {
     cardType: "SINGLE",
-    matchLength: cards.length / 2,
+    matchLength: 0,
     addCard: 0,
-    maxCard: cards[0].rank,
+    maxCard: toBeHit.rank,
   };
   return toBeHit;
 }
 
 function double() {
-  console.log('single');
+  console.log("double");
   const { hands, playerNum } = computer;
   const cardMap = {};
   const doubleList = [];
@@ -90,14 +128,33 @@ function double() {
       el.isSelected = true;
     }
   });
-  const cardInfo = {
-    cardType: "SINGLE",
-    matchLength: cards.length / 2,
+
+  computer.cardInfo = {
+    cardType: "DOUBLE",
+    matchLength: 2,
     addCard: 0,
-    maxCard: cards[0].rank,
+    maxCard: toBeHit,
   };
-  console.log('double');
+  return toBeHit;
 }
+
+function computerDropTheCards() {
+  const selectedCards = filterSelectedCard();
+  computer.nowTurnHitCardsList = selectedCards;
+  selectedCards.forEach((el) => {
+    const index = computer.hands.findIndex((el2) => el2.id === el.id);
+    computer.hands.splice(index, 1);
+  });
+}
+
+// 电脑选中的牌
+function filterSelectedCard() {
+  const tempHitCards = cloneDeep(computer.hands).filter((el) => {
+    return el.isSelected;
+  });
+  return tempHitCards;
+}
+
 export function computerHitCard(player, playerList) {
   computer = player;
   const { preTurn } = computer;
@@ -124,11 +181,12 @@ export function computerHitCard(player, playerList) {
   const type = againstPlayer.cardInfo.cardType;
   let isCPUhited = false;
   switch (type) {
-    case 'SINGLE':
+    case "SINGLE":
       isCPUhited = single();
       break;
-    case 'DOUBLE':
+    case "DOUBLE":
       isCPUhited = double();
   }
+  computerDropTheCards();
   return isCPUhited;
 }

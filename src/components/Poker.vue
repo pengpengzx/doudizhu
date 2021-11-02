@@ -145,7 +145,7 @@
         <UIButton
           ref="buchu"
           class="ui-btn pain"
-          @clickHandler="pass"
+          @clickHandler="nextOne"
           style="width: 11vw"
           name="不出"
           type="notCall"
@@ -164,6 +164,7 @@
           name="出牌"
           type="hit"
           :player="player1"
+          :playerList="playerList"
         />
       </div>
       <div class="ui-tip" v-if="isShowDoubleTip">
@@ -195,13 +196,8 @@ import UIButton from "./UIButton.vue";
 import shuffle from "lodash/shuffle.js";
 import cloneDeep from "lodash/cloneDeep.js";
 import Card from "./Card.vue";
-// import VALIDATE from "@/utils/validate.js";
 import sortOrder from "@/constant/order.js";
-// const tempMapPlayer = {
-//   1: "player1",
-//   2: "player2",
-//   3: "player3",
-// };
+
 export default {
   name: "poker",
   data() {
@@ -404,9 +400,9 @@ export default {
       // 如果都不叫地主 重新洗牌发牌
     },
     // 要不起
-    pass() {
+    nextOne() {
       this.player1.nowTurnHitCardsList = [];
-      this.nextTurn(this.player2);
+      this.computerTurn(this.player2);
     },
     // 提示
     hint() {},
@@ -448,6 +444,7 @@ export default {
       if (cpuNumber === 3) this.player3HitCardsList = [];
 
       const isCPUhited = computerHitCard(computer, this.playerList);
+      console.log(isCPUhited, "isCPUhited");
       if (!isCPUhited) {
         playAudio("notCall");
         if (cpuNumber === 2) {
@@ -480,7 +477,6 @@ export default {
       if (card.isSelected) {
         this.selectedCards.push(card);
       } else {
-        console.log(card, "card");
         const index = this.selectedCards.findIndex((el) => el.id === card.id);
         this.selectedCards.splice(index, 1);
       }
