@@ -189,7 +189,7 @@
 <script>
 import { playBGM } from "@/utils/bgm.js";
 import { sleep } from "@/utils/sleep.js";
-import { computerHitCard } from "@/utils/computer-ai.js";
+import computerHitCard from "@/utils/computer-ai.js";
 import { playAudio } from "@/constant/audio.js";
 import POKERS from "@/constant/poker.js";
 import UIButton from "./UIButton.vue";
@@ -406,8 +406,7 @@ export default {
     },
     // 提示
     hint() {},
-    playerHitHandler(params = null) {
-      this.player1.cardInfo = params;
+    playerHitHandler() {
       this.afterHitHandler(this.player1);
     },
     // 出牌
@@ -452,7 +451,7 @@ export default {
           computer.nowTurnHitCardsList = [];
           return this.computerTurn(this.player3);
         }
-        if (computer === 3) {
+        if (cpuNumber === 3) {
           this.isShowHitCardsPlayer3 = true;
           computer.nowTurnHitCardsList = [];
           this.player1.nowTurnHitCardsList = [];

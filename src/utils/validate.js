@@ -408,6 +408,21 @@ function checkType(cards) {
   return false;
 }
 
+export function isBigger(myCardInfo, comCardInfo) {
+    const {cardType, maxCard} = myCardInfo 
+    const comMaxCard = comCardInfo.maxCard;
+    let isBigger = false;
+    switch (cardType) {
+      case 'SINGLE': {
+        let i = sortOrder.indexOf(maxCard);
+        let k = sortOrder.indexOf(comMaxCard);
+        isBigger = i - k;
+        break;
+      }
+    }
+    return isBigger;
+}
+
 const validate = {
   checkSingle,
   checkBomb,
@@ -416,5 +431,6 @@ const validate = {
   checkTriple1,
   checkTriple2,
   checkType,
+  isBigger,
 };
 export default validate;

@@ -6,7 +6,7 @@
 import { AUDIO_MAP } from "@/constant/audio.js";
 import cloneDeep from "lodash/cloneDeep.js";
 import { playErrorAudio } from "@/utils/bgm.js";
-import VALIDATE from "@/utils/validate.js";
+import VALIDATE, { isBigger }from "@/utils/validate.js";
 
 export default {
   name: "UIButton",
@@ -49,17 +49,21 @@ export default {
       try {
         this.filterSelectedCard();
         const isFreeHit = this.isFreeHit();
-        let isValid  = false;
+        console.log(isFreeHit, "isFreeHit");
+        let isValid = false;
         if (isFreeHit) {
           isValid = this.validateCardsType();
-        } else{
+          this.player.cardInfo = isValid;
+          console.log(isValid, '');
+        } else {
           isValid = this.validateCardsRank();
         }
+        console.log(isValid, "isValidisValidisValid");
         if (!isValid) {
           return playErrorAudio();
         } else {
           await this.audio.play();
-          this.$emit("clickHandler", isValid);
+          this.$emit("clickHandler");
         }
       } catch (error) {
         console.log(error);
@@ -73,7 +77,7 @@ export default {
       if (selectedCards && selectedCards.length === 0) return false;
 
       this.player.nowTurnHitCardsList = selectedCards;
-      
+
       const toBeHitCardType = VALIDATE.checkType(selectedCards);
 
       toBeHitCardType && this.dropTheCards(selectedCards);
@@ -97,7 +101,7 @@ export default {
     isFreeHit() {
       // 上一个玩家
       let againstPlayer = this.playerList[this.player.preTurn - 1];
-      this.againstPlayer = againstPlayer;
+      
       // 上一个玩家出的牌
       let hitCard = againstPlayer.nowTurnHitCardsList;
       // 如果上一家没有出牌 则去找上上家
@@ -105,15 +109,20 @@ export default {
         againstPlayer = this.playerList[againstPlayer.preTurn - 1];
         hitCard = againstPlayer.nowTurnHitCardsList;
       }
+      this.againstPlayer = againstPlayer; 
       return hitCard.length === 0;
     },
     validateCardsRank() {
       // 确定出牌的类型
       const type = this.againstPlayer.cardInfo.cardType;
-      const target = type.slice(1); 
-      const tempType = type.replace(target, target.toLowerCase())
+      const maxCard = this.againstPlayer.cardInfo.maxCard;
+      console.log(maxCard, "maxCard");
+      const target = type.slice(1);
+      const tempType = type.replace(target, target.toLowerCase());
       const isValid = VALIDATE[`check${tempType}`](this.selectedCards);
-      return isValid;
+      const isBiggerThen = isBigger(this.player, this.againstPlayer);
+      console.log(isBiggerThen, isValid, "isValid");
+      return isValid && isBiggerThen;
     },
   },
 };
