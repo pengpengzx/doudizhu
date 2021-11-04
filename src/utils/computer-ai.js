@@ -1,5 +1,6 @@
 import sortOrder from "@/constant/order.js";
 import cloneDeep from "lodash/cloneDeep.js";
+
 // import groupBy from "lodash/groupBy.js";
 let playerInfo = null;
 let againstPlayer = null;
@@ -112,7 +113,6 @@ function double() {
 }
 
 function triple() {
-  const { hands } = playerInfo;
   const cardInfo = againstPlayer.cardInfo;
   const maxCard = cardInfo.maxCard;
   const tripleGroup = comCardGroup.tripleGroup;
@@ -248,7 +248,6 @@ export default function computerHitCard(player, playerList) {
   playerInfo = player;
   const hasHitCard = initGameInfo(playerList);
   let isComputerFinished = false;
-  console.log(hasHitCard, "hasHitCard");
   // 格式化手牌，按A，AA，AAA，AAAA分牌
   formatCardsGroup();
   // 其他两家都要不起，随意走

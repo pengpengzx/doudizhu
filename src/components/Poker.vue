@@ -23,13 +23,13 @@
       </div>
       <div
         class="player-pokers"
-        :style="{ width: player1.hands.length * 4 + 7 + 'vw' }"
+        :style="{ width: player1.hands.length * 4 + 7 + 'vh' }"
       >
         <Card
           class="player-card"
           v-for="(poker, index) in player1.hands"
           :key="poker.id"
-          :style="{ left: index * 4 + 'vw' }"
+          :style="{ left: index * 4 + 'vh' }"
           :pokerInfo="poker"
           :isHidden="false"
           :isSelected="poker.isSelected"
@@ -64,7 +64,7 @@
           />
           <div
             v-if="player2.nowTurnHitCardsList.length === 0"
-            style="font-size: 10vw"
+            style="font-size: 10vh"
           >
             要不起
           </div>
@@ -83,7 +83,7 @@
           />
           <div
             v-if="player3.nowTurnHitCardsList.length === 0"
-            style="font-size: 10vw"
+            style="font-size: 10vh"
           >
             要不起
           </div>
@@ -129,14 +129,14 @@
         <UIButton
           class="ui-btn primary"
           @clickHandler="askIfTobeLandlord"
-          style="width: 11vw"
+          style="width: 11vh"
           name="叫地主"
           type="call"
         />
         <UIButton
           class="ui-btn pain"
           @clickHandler="notLandlord"
-          style="width: 11vw"
+          style="width: 11vh"
           name="不叫"
           type="notCall"
         />
@@ -147,21 +147,21 @@
           ref="buchu"
           class="ui-btn pain"
           @clickHandler="nextOne"
-          style="width: 11vw"
+          style="width: 11vh"
           name="不出"
           type="notCall"
         />
         <UIButton
           class="ui-btn pain"
           @clickHandler="hint"
-          style="width: 11vw"
+          style="width: 11vh"
           name="提示"
         />
 
         <UIButton
           class="ui-btn primary"
           @clickHandler="playerHitHandler"
-          style="width: 11vw"
+          style="width: 11vh"
           name="出牌"
           type="hit"
           :player="player1"
@@ -197,6 +197,10 @@ import shuffle from "lodash/shuffle.js";
 import cloneDeep from "lodash/cloneDeep.js";
 import Card from "./Card.vue";
 import sortOrder from "@/constant/order.js";
+import { playSound } from "@/constant/audio.js";
+
+
+
 
 export default {
   name: "poker",
@@ -411,15 +415,9 @@ export default {
 
       if (playerNum === 2) {
         this.isShowHitCardsPlayer2 = true;
-        if (this.player2HitCardsList.length === 0) {
-          playAudio("soft");
-        }
       }
       if (playerNum === 3) {
         this.isShowHitCardsPlayer3 = true;
-        if (this.player3HitCardsList.length === 0) {
-          playAudio("soft");
-        }
         this.isShowHitCards = false;
         this.isMyHit = true;
         return;
@@ -431,12 +429,10 @@ export default {
       // 延迟1s 触发电脑
       await sleep(1000);
       const cpuNumber = computer.playerNum;
-      if (cpuNumber === 2) this.player2HitCardsList = [];
-      if (cpuNumber === 3) this.player3HitCardsList = [];
-
       const isComputerHited = computerHitCard(computer, this.playerList);
+
       if (!isComputerHited) {
-        playAudio("notCall");
+        await playSound('notCall');
         if (cpuNumber === 2) {
           this.isShowHitCardsPlayer2 = true;
           computer.nowTurnHitCardsList = [];
@@ -449,8 +445,9 @@ export default {
           this.isMyHit = true;
           return;
         }
+      } else {
+        await playSound('hit');
       }
-      playAudio("hit");
       this.afterHitHandler(computer);
     },
     dropHandCard(palyer, toBeDropIndexList) {
@@ -477,193 +474,391 @@ export default {
 
 <!-- Add "scoped" attribute to limit CSS to this component only -->
 <style lang="scss">
-.poker-game {
-  width: 100%;
-  height: 100%;
-  padding: 2vh;
-  position: relative;
-  overflow: hidden;
-  .table {
-    position: relative;
+@media all and (orientation: landscape) {
+  /*横屏时代码*/
+  .poker-game {
     width: 100%;
     height: 100%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    z-index: 20;
-    .hands-card {
-      position: absolute;
-      left: 20vw;
-      top: 40vh;
-      width: 9vh;
-      height: 12vh;
-      padding: 0.6vh;
-      background: white;
-      border-radius: 1vh;
-      border: 0.05vh solid #666;
-      z-index: 30;
-      font-weight: bold;
-      color: #2c6fec;
-      font-size: 3.5vw;
-      .back {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        width: 100%;
-        height: 100%;
-        background: url("../assets/fish.png") repeat;
-        background-size: 30%;
-        background-position: 1vh 1vh;
-        // -webkit-text-stroke: 2px white;
-        border: 0.2vh solid #eebc8b;
-        border-radius: 1vh;
-        text-shadow: white 2px 2px 1;
-      }
-    }
-    .hands-card-right {
-      right: 21vw !important;
-      left: auto !important;
-    }
-    .hited-cards {
-      position: absolute;
-      top: 24vw;
-      transform: scale(0.5);
-      display: flex;
-      .poker {
-        position: static;
-      }
-      &.player2 {
-        top: 11vw;
-        right: 16vw;
-      }
-      &.player3 {
-        top: 11vw;
-        left: 16vw;
-      }
-    }
-    .top-docker {
-      position: absolute;
-      top: 0;
-      left: 50%;
-      transform: translate(-50%, 0);
-      display: flex;
-      .poker {
-        position: static;
-        width: 5vw;
-        height: 6vw;
-        padding-top: 0;
-        &.isHidden {
-          padding: 0.5vh;
-        }
-        .front {
-          font-size: 2vw;
-        }
-        .little,
-        .big {
-          // font-size: 1;
-        }
-      }
-    }
-    .contener {
-      width: 20vh;
-      height: 31.5vh;
-      position: relative;
-      & > .card {
-      }
-    }
-    .player-pokers {
-      height: 31.5vh;
-      position: absolute;
-      left: 50%;
-      bottom: 0.5vw;
-      transform: translate(-50%, 0);
-      display: flex;
-      .player-card {
-        position: absolute;
-      }
-    }
-  }
-  .player-list {
-    width: 100vw;
-    height: 100vh;
-    position: absolute;
-    left: 0;
-    top: 0;
-    .player {
-      position: absolute;
-      left: -4vh;
-      top: 63vh;
-      z-index: 3;
-      .character {
-        width: 47vh;
-      }
-    }
-    .cup1 {
-      position: absolute;
-      left: 14vh;
-      top: 16vh;
-      z-index: 1;
-      .character {
-        width: 32vh;
-      }
-    }
-    .cup2 {
-      position: absolute;
-      right: 14vh;
-      top: 16vh;
-      z-index: 1;
-      .character {
-        width: 32vh;
-      }
-    }
+    padding: 2vh;
+    position: relative;
+    overflow: hidden;
     .table {
-      position: absolute;
-      left: 0vw;
-      top: 39vh;
-      z-index: 2;
-      img {
-        width: 140vw;
-      }
-    }
-  }
-  .ui-wraper {
-    width: 50vw;
-    position: absolute;
-    left: 50%;
-    top: 58%;
-    transform: translate(-50%, -50%);
-    z-index: 30;
-    .ui-tip {
+      position: relative;
+      width: 100%;
+      height: 100%;
       display: flex;
-      justify-content: space-around;
+      justify-content: center;
       align-items: center;
-      .ui-btn {
-        position: relative;
-        top: 0;
-        display: inline-block;
-        font-size: 2.5vw;
-        padding: 0.5vw 1vw;
-        border-radius: 50px;
+      z-index: 20;
+      .hands-card {
+        position: absolute;
+        left: 20vw;
+        top: 40vh;
+        width: 9vh;
+        height: 12vh;
+        padding: 0.6vh;
+        background: white;
+        border-radius: 1vh;
+        border: 0.05vh solid #666;
+        z-index: 30;
         font-weight: bold;
-        border: 0.5vw solid white;
-        color: white;
-        box-shadow: 0 0.3em #c2bb11, 0 0.6em rgba(0, 0, 0, 0.4);
-        &:active {
-          top: 0.4em;
-          box-shadow: 0 0.12em #c2bb11, 0 0.26em rgba(0, 0, 0, 0.4);
+        color: #2c6fec;
+        font-size: 3.5vw;
+        .back {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          width: 100%;
+          height: 100%;
+          background: url("../assets/fish.png") repeat;
+          background-size: 30%;
+          background-position: 1vh 1vh;
+          // -webkit-text-stroke: 2px white;
+          border: 0.2vh solid #eebc8b;
+          border-radius: 1vh;
+          text-shadow: white 2px 2px 1;
+        }
+      }
+      .hands-card-right {
+        right: 21vw !important;
+        left: auto !important;
+      }
+      .hited-cards {
+        position: absolute;
+        top: 24vw;
+        transform: scale(0.5);
+        display: flex;
+        .poker {
+          position: static;
+        }
+        &.player2 {
+          top: 11vw;
+          right: 16vw;
+        }
+        &.player3 {
+          top: 11vw;
+          left: 16vw;
+        }
+      }
+      .top-docker {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translate(-50%, 0);
+        display: flex;
+        .poker {
+          position: static;
+          width: 5vw;
+          height: 6vw;
+          padding-top: 0;
+          &.isHidden {
+            padding: 0.5vh;
+          }
+          .front {
+            font-size: 2vw;
+          }
+          .little,
+          .big {
+            // font-size: 1;
+          }
+        }
+      }
+      .contener {
+        width: 20vh;
+        height: 31.5vh;
+        position: relative;
+        & > .card {
+        }
+      }
+      .player-pokers {
+        height: 31.5vh;
+        position: absolute;
+        left: 50%;
+        bottom: 0.5vw;
+        transform: translate(-50%, 0);
+        display: flex;
+        .player-card {
+          position: absolute;
         }
       }
     }
+    .player-list {
+      width: 100vw;
+      height: 100vh;
+      position: absolute;
+      left: 0;
+      top: 0;
+      .player {
+        position: absolute;
+        left: -4vh;
+        top: 63vh;
+        z-index: 3;
+        .character {
+          width: 47vh;
+        }
+      }
+      .cup1 {
+        position: absolute;
+        left: 14vh;
+        top: 16vh;
+        z-index: 1;
+        .character {
+          width: 32vh;
+        }
+      }
+      .cup2 {
+        position: absolute;
+        right: 14vh;
+        top: 16vh;
+        z-index: 1;
+        .character {
+          width: 32vh;
+        }
+      }
+      .table {
+        position: absolute;
+        left: 0vw;
+        top: 39vh;
+        z-index: 2;
+        img {
+          width: 140vw;
+        }
+      }
+    }
+    .ui-wraper {
+      width: 50vw;
+      position: absolute;
+      left: 50%;
+      top: 58%;
+      transform: translate(-50%, -50%);
+      z-index: 30;
+      .ui-tip {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        .ui-btn {
+          position: relative;
+          top: 0;
+          display: inline-block;
+          font-size: 2.5vw;
+          padding: 0.5vw 1vw;
+          border-radius: 50px;
+          font-weight: bold;
+          border: 0.5vw solid white;
+          color: white;
+          box-shadow: 0 0.3em #c2bb11, 0 0.6em rgba(0, 0, 0, 0.4);
+          &:active {
+            top: 0.4em;
+            box-shadow: 0 0.12em #c2bb11, 0 0.26em rgba(0, 0, 0, 0.4);
+          }
+        }
+      }
+    }
+    .btn-group {
+      width: 36vw;
+    }
+    .pain {
+      background-color: rgb(100, 150, 244);
+    }
+    .primary {
+      background-color: #e8981c;
+      &:active {
+      }
+    }
   }
-  .btn-group {
-    width: 36vw;
-  }
-  .pain {
-    background-color: rgb(100, 150, 244);
-  }
-  .primary {
-    background-color: #e8981c;
-    &:active {
+}
+
+@media all and (orientation: portrait) {
+  /*竖屏时代码*/
+  /*横屏时代码*/
+  .poker-game {
+    width: 100%;
+    height: 100%;
+    padding: 2vw;
+    position: relative;
+    overflow: hidden;
+    .table {
+      position: relative;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 20;
+      .hands-card {
+        position: absolute;
+        left: 20vh;
+        top: 40vw;
+        width: 9vw;
+        height: 12vw;
+        padding: 0.6vw;
+        background: white;
+        border-radius: 1vw;
+        border: 0.05vw solid #666;
+        z-index: 30;
+        font-weight: bold;
+        color: #2c6fec;
+        font-size: 3.5vw;
+        .back {
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          width: 100%;
+          height: 100%;
+          background: url("../assets/fish.png") repeat;
+          background-size: 30%;
+          background-position: 1vw 1vw;
+          // -webkit-text-stroke: 2px white;
+          border: 0.2vw solid #eebc8b;
+          border-radius: 1vw;
+          text-shadow: white 2px 2px 1;
+        }
+      }
+      .hands-card-right {
+        right: 21vh !important;
+        left: auto !important;
+      }
+      .hited-cards {
+        position: absolute;
+        top: 24vh;
+        transform: scale(0.5);
+        display: flex;
+        .poker {
+          position: static;
+        }
+        &.player2 {
+          top: 11vh;
+          right: 16vh;
+        }
+        &.player3 {
+          top: 11vh;
+          left: 16vh;
+        }
+      }
+      .top-docker {
+        position: absolute;
+        top: 0;
+        left: 50%;
+        transform: translate(-50%, 0);
+        display: flex;
+        .poker {
+          position: static;
+          width: 5vh;
+          height: 6vh;
+          padding-top: 0;
+          &.isHidden {
+            padding: 0.5vw;
+          }
+          .front {
+            font-size: 2vh;
+          }
+          .little,
+          .big {
+            // font-size: 1;
+          }
+        }
+      }
+      .contener {
+        width: 20vw;
+        height: 31.5vw;
+        position: relative;
+        & > .card {
+        }
+      }
+      .player-pokers {
+        height: 31.5vw;
+        position: absolute;
+        left: 50%;
+        bottom: 0.5vh;
+        transform: translate(-50%, 0);
+        display: flex;
+        .player-card {
+          position: absolute;
+        }
+      }
+    }
+    .player-list {
+      width: 100vh;
+      height: 100vw;
+      position: absolute;
+      left: 0;
+      top: 0;
+      .player {
+        position: absolute;
+        left: -4vw;
+        top: 63vw;
+        z-index: 3;
+        .character {
+          width: 47vw;
+        }
+      }
+      .cup1 {
+        position: absolute;
+        left: 14vw;
+        top: 16vw;
+        z-index: 1;
+        .character {
+          width: 32vw;
+        }
+      }
+      .cup2 {
+        position: absolute;
+        right: 14vw;
+        top: 16vw;
+        z-index: 1;
+        .character {
+          width: 32vw;
+        }
+      }
+      .table {
+        position: absolute;
+        left: 0vw;
+        top: 39vw;
+        z-index: 2;
+        img {
+          width: 140vh;
+        }
+      }
+    }
+    .ui-wraper {
+      width: 50vh;
+      position: absolute;
+      left: 50%;
+      top: 58%;
+      transform: translate(-50%, -50%);
+      z-index: 30;
+      .ui-tip {
+        display: flex;
+        justify-content: space-around;
+        align-items: center;
+        .ui-btn {
+          position: relative;
+          top: 0;
+          display: inline-block;
+          font-size: 2.5vh;
+          padding: 0.5vh 1vh;
+          border-radius: 50px;
+          font-weight: bold;
+          border: 0.5vh solid white;
+          color: white;
+          box-shadow: 0 0.3em #c2bb11, 0 0.6em rgba(0, 0, 0, 0.4);
+          &:active {
+            top: 0.4em;
+            box-shadow: 0 0.12em #c2bb11, 0 0.26em rgba(0, 0, 0, 0.4);
+          }
+        }
+      }
+    }
+    .btn-group {
+      width: 36vh;
+    }
+    .pain {
+      background-color: rgb(100, 150, 244);
+    }
+    .primary {
+      background-color: #e8981c;
+      &:active {
+      }
     }
   }
 }

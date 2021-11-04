@@ -3,10 +3,9 @@
 </template>
 
 <script>
-import { AUDIO_MAP } from "@/constant/audio.js";
 import cloneDeep from "lodash/cloneDeep.js";
-import { playBGM, playErrorAudio } from "@/utils/bgm.js";
 import VALIDATE, { isBigger } from "@/utils/validate.js";
+import { playSound } from "@/constant/audio.js";
 
 export default {
   name: "UIButton",
@@ -29,7 +28,6 @@ export default {
     playerList: Array,
   },
   mounted() {
-    this.audio = new Audio(AUDIO_MAP[this.type]);
   },
   methods: {
     async clickHandler() {
@@ -38,8 +36,8 @@ export default {
         if (this.type === "hit") {
           this.playerHitHandler();
         } else {
-          if (this.type === "start") playBGM();
-          await this.audio.play();
+          if (this.type === "start") playSound('bgm');
+          await playSound(this.type);
           this.$emit("clickHandler");
         }
       } catch (error) {
@@ -51,12 +49,12 @@ export default {
         this.filterSelectedCard();
         // 没有选中的牌 返回
         const isValid = this.validateCardsRank();
-        if (!isValid) return playErrorAudio();
+        if (!isValid) return playSound('error');
 
         // 通过校验后赋值
         this.player.cardInfo = isValid;
         this.dropTheCards(this.selectedCards);
-        await this.audio.play();
+        playSound('hit')
         this.$emit("clickHandler");
       } catch (error) {
         console.log(error);

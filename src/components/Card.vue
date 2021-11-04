@@ -36,7 +36,7 @@
         class="big-suit"
         v-if="isScale && pokerInfo.rank === 'JOKER'"
         style="
-          font-size: 4vw;
+          font-size: 4vh;
           top: auto;
           justify-content: center;
           align-items: center;
@@ -96,89 +96,181 @@ export default {
 </script>
 
 <style scoped lang="scss">
-.poker {
-  font-size: 3vw;
-  line-height: 3vw;
-  font-weight: bold;
-  position: absolute;
-  width: 11vw;
-  height: 14.8vw;
-  background: white;
-  border-radius: 0.8vw;
-  border: 0.05vh solid #666;
-  padding-top: 1vw;
-  .back {
-    width: 100%;
-    height: 100%;
-    background: url("../assets/fish.png") repeat;
-    // background: url('../assets/fish3.png') repeat;
-    background-size: 30%;
-    background-position: 1vh 2vh;
-    border: 0.2vh solid #eebc8b;
-    border-radius: 1vh;
+@media all and (orientation: landscape) {
+  /*横屏时代码*/
+  .poker {
+    font-size: 3vw;
+    line-height: 3vw;
+    font-weight: bold;
+    position: absolute;
+    width: 11vw;
+    height: 14.8vw;
+    background: white;
+    border-radius: 0.8vw;
+    border: 0.05vh solid #666;
+    padding-top: 1vw;
+    .back {
+      width: 100%;
+      height: 100%;
+      background: url("../assets/fish.png") repeat;
+      // background: url('../assets/fish3.png') repeat;
+      background-size: 30%;
+      background-position: 1vh 2vh;
+      border: 0.2vh solid #eebc8b;
+      border-radius: 1vh;
+    }
+    .front {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
+    .rank {
+      width: 4vw;
+      text-align: center;
+      letter-spacing: 0.1vw;
+    }
+    .spades {
+    }
+    .hearts {
+      color: crimson;
+    }
+    .diams {
+      color: crimson;
+    }
+    .clubs {
+    }
+    .suit {
+      width: 4vw;
+      text-align: center;
+      margin-left: -0.1vw;
+    }
+    .big-suit {
+      width: 100%;
+      flex: 1;
+      font-size: 7vw;
+      display: flex;
+      justify-content: flex-end;
+      align-items: flex-end;
+      position: relative;
+      top: -2vw;
+    }
+    .big {
+      color: crimson;
+      .rank {
+        width: 4vw;
+        word-break: break-word;
+        text-align: center;
+        line-height: 1;
+        padding: 0 0.15vw;
+        font-size: 2.8vw;
+      }
+    }
+    .little {
+      .rank {
+        width: 4vw;
+        word-break: break-word;
+        text-align: center;
+        line-height: 1;
+        padding: 0 0.15vw;
+        font-size: 2.8vw;
+      }
+    }
   }
-  .front {
-    width: 100%;
-    height: 100%;
-    display: flex;
-    flex-direction: column;
+  .poker.isHidden {
+    padding: 1vh;
   }
-  .rank {
-    width: 4vw;
-    text-align: center;
-    letter-spacing: 0.1vw;
-  }
-  .spades {
-  }
-  .hearts {
-    color: crimson;
-  }
-  .diams {
-    color: crimson;
-  }
-  .clubs {
-  }
-  .suit {
-    width: 4vw;
-    text-align: center;
-    margin-left: -0.1vw;
-  }
-  .big-suit {
-    width: 100%;
-    flex: 1;
-    font-size: 7vw;
-    display: flex;
-    justify-content: flex-end;
-    align-items: flex-end;
-    position: relative;
+  .poker.isSelected {
     top: -2vw;
   }
-  .big {
-    color: crimson;
+}
+
+@media all and (orientation: portrait) {
+  /*竖屏时代码*/
+  .poker {
+    font-size: 3vh;
+    line-height: 3vh;
+    font-weight: bold;
+    position: absolute;
+    width: 11vh;
+    height: 14.8vh;
+    background: white;
+    border-radius: 0.8vh;
+    border: 0.05vw solid #666;
+    padding-top: 1vh;
+    .back {
+      width: 100%;
+      height: 100%;
+      background: url("../assets/fish.png") repeat;
+      // background: url('../assets/fish3.png') repeat;
+      background-size: 30%;
+      background-position: 1vw 2vw;
+      border: 0.2vw solid #eebc8b;
+      border-radius: 1vw;
+    }
+    .front {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+    }
     .rank {
-      width: 4vw;
-      word-break: break-word;
+      width: 4vh;
       text-align: center;
-      line-height: 1;
-      padding: 0 0.1vw;
-      font-size: 2.8vw;
+      letter-spacing: 0.1vh;
+    }
+    .spades {
+    }
+    .hearts {
+      color: crimson;
+    }
+    .diams {
+      color: crimson;
+    }
+    .clubs {
+    }
+    .suit {
+      width: 4vh;
+      text-align: center;
+      margin-left: -0.1vh;
+    }
+    .big-suit {
+      width: 100%;
+      flex: 1;
+      font-size: 7vh;
+      display: flex;
+      justify-content: flex-end;
+      align-items: flex-end;
+      position: relative;
+      top: -2vh;
+    }
+    .big {
+      color: crimson;
+      .rank {
+        width: 3vh;
+        word-break: break-word;
+        text-align: center;
+        line-height: 1;
+        padding: 0 0.1vh;
+        font-size: 2.8vh;
+      }
+    }
+    .little {
+      .rank {
+        width: 3vh;
+        word-break: break-word;
+        text-align: center;
+        line-height: 1;
+        padding: 0 0.1vh;
+        font-size: 2.8vh;
+      }
     }
   }
-  .little {
-    .rank {
-      width: 4vw;
-      word-break: break-word;
-      text-align: center;
-      line-height: 1;
-      padding: 0 0.1vw;
-      font-size: 2.8vw;
-    }
+  .poker.isHidden {
+    padding: 1vw;
   }
-}
-.poker.isHidden {
-  padding: 1vh;
-}
-.poker.isSelected {
-  top: -2vw;
+  .poker.isSelected {
+    top: -2vh;
+  }
 }
 </style>
