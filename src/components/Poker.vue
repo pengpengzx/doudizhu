@@ -278,7 +278,10 @@ export default {
     async startGame() {
       this.notStart = false;
       this.isShowPoker = true;
+      playSound('shuffle');
+      console.time();
       await this.deal();
+      console.timeEnd();
       this.lastThreeCard = cloneDeep(this.pokers);
       this.playerList.forEach((el) => this.sortPoker(el));
       this.sortPoker(this.player1);

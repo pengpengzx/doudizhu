@@ -5,6 +5,7 @@ const bgmSound = loadSound(require("@/assets/audio/bg.mp3"));
 const btnSound = loadSound(require("@/assets/audio/btn.mp3"));
 const errorSound = loadSound(require("@/assets/audio/error.mp3"));
 const nothingSound = loadSound(require("@/assets/audio/nothing.wav"));
+const shuffleSound = loadSound(require("@/assets/audio/shuffle.mp3"));
 const AUDIO_MAP = {
   "default": btnSound,
   "call": angrySound,
@@ -14,6 +15,7 @@ const AUDIO_MAP = {
   "bgm": bgmSound,
   "error": errorSound,
   "nothing": nothingSound,
+  "shuffle": shuffleSound,
 };
 
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
