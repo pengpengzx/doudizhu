@@ -15,6 +15,7 @@ let comCardGroup = {
 let isLockSingleGroup = false;
 let isLockDoubleGroup = false;
 let isLockTripleGroup = false;
+
 // 工具方法 等同与_groupBy
 function groupBy(hands, key) {
   const cardMap = {};
@@ -63,7 +64,7 @@ function single() {
   return hasMoreBigerCard;
 }
 // AA
-function double() {
+function double(isContinuously) {
   console.log("double");
   const { hands, playerNum } = playerInfo;
   const cardMap = {};
@@ -85,23 +86,30 @@ function double() {
     const indexB = sortOrder.indexOf(b);
     return indexA - indexB;
   });
+  console.log(doubleList, 'doubleList');
   let toBeHit = "";
-  for (let index = 0; index < doubleList.length; index++) {
-    const element = doubleList[index];
-    const a = sortOrder.indexOf(element);
-    const b = sortOrder.indexOf(hitCard[0].rank);
-
-    if (a > b) {
-      toBeHit = element;
-      break;
+  // 连对
+  if (isContinuously) {
+    //
+  } else {
+    for (let index = 0; index < doubleList.length; index++) {
+      const element = doubleList[index];
+      const a = sortOrder.indexOf(element);
+      const b = sortOrder.indexOf(hitCard[0].rank);
+  
+      if (a > b) {
+        toBeHit = element;
+        break;
+      }
     }
+    console.log(`要出的牌${toBeHit}`, `player${playerNum}`);
+    hands.forEach((el) => {
+      if (toBeHit && el.rank === toBeHit) {
+        el.isSelected = true;
+      }
+    });
   }
-  console.log(`要出的牌${toBeHit}`, `player${playerNum}`);
-  hands.forEach((el) => {
-    if (toBeHit && el.rank === toBeHit) {
-      el.isSelected = true;
-    }
-  });
+  
 
   playerInfo.cardInfo = {
     cardType: "DOUBLE",
@@ -112,6 +120,7 @@ function double() {
   return toBeHit;
 }
 
+// AAA
 function triple() {
   const cardInfo = againstPlayer.cardInfo;
   const maxCard = cardInfo.maxCard;
@@ -141,7 +150,89 @@ function triple() {
   };
   return true;
 }
-function bomb() {}
+
+// AAA + B/BB
+function tripleAdd(addNum) {
+  const cardInfo = againstPlayer.cardInfo;
+  const maxCard = cardInfo.maxCard;
+  const { singleGroup, doubleGroup, tripleGroup } = comCardGroup;
+
+  if (tripleGroup.length === 0) return false;
+  const index = tripleGroup.findIndex((el) => {
+    let i = sortOrder.indexOf(el[0].sortKey);
+    let j = sortOrder.indexOf(maxCard);
+    return i - j > 0;
+  });
+  // 是否有更大的牌出
+  let hasMoreBigerCard = index > -1;
+
+  // 没有的话结束计算
+  if (!hasMoreBigerCard) return hasMoreBigerCard;
+
+  let singCard = singleGroup[0];
+  let addCards = null;
+  // 带1张牌
+  if (addNum === 1) {
+    if (singCard) {
+      addCards = singCard;
+    }
+    if (!singCard && doubleGroup.length) {
+      addCards = doubleGroup[0][0];
+    }
+  } else {
+    if (doubleGroup.length) {
+      addCards = doubleGroup[0];
+    }
+  }
+  if (!addCards || addCards.length === 0) return false;
+
+  const hitCards = tripleGroup[index];
+  addNum === 1 ? hitCards.push(addCards) : hitCards.concat(addCards);
+  // 选中要出的卡牌
+  hitCards.forEach((el) => {
+    el.isSelected = true;
+  });
+
+  playerInfo.cardInfo = {
+    cardType: addNum === 1 ? "TRIPLE1" : "TRIPLE2",
+    matchLength: 3,
+    addCard: addNum === 1 ? 1 : 2,
+    maxCard: hitCards[0].sortKey,
+  };
+  return true;
+}
+
+// AAAA
+function bomb() {
+  const cardInfo = againstPlayer.cardInfo;
+  const maxCard = cardInfo.maxCard;
+  const bombGroup = comCardGroup.bombGroup;
+
+  if (bombGroup.length === 0) return false;
+  const index = bombGroup.findIndex((el) => {
+    let i = sortOrder.indexOf(el[0].sortKey);
+    let j = sortOrder.indexOf(maxCard);
+    return i - j > 0;
+  });
+  // 是否有更大的牌出
+  let hasMoreBigerCard = index > -1;
+
+  // 没有的话结束计算
+  if (!hasMoreBigerCard) return hasMoreBigerCard;
+  const hitCards = bombGroup[index];
+  hitCards.forEach((el) => {
+    el.isSelected = true;
+  });
+
+  playerInfo.cardInfo = {
+    cardType: "BOMB",
+    matchLength: 4,
+    addCard: 0,
+    maxCard: hitCards[0].sortKey,
+  };
+  return true;
+}
+
 // 把要出的牌从手牌里删除
 function computerDropTheCards() {
   const selectedCards = filterSelectedCard();
@@ -177,8 +268,6 @@ function initGameInfo(playerList) {
 // 给电脑当前手牌分组
 function formatCardsGroup() {
   const hands = playerInfo.hands;
-  const cardInfo = againstPlayer.cardInfo;
-  console.log(cardInfo);
 
   const doubleList = [];
   const cardMap = groupBy(hands, "sortKey");
@@ -244,39 +333,6 @@ function findAllABCDE() {
   console.log(hands, "hands");
 }
 
-export default function computerHitCard(player, playerList) {
-  playerInfo = player;
-  const hasHitCard = initGameInfo(playerList);
-  let isComputerFinished = false;
-  // 格式化手牌，按A，AA，AAA，AAAA分牌
-  formatCardsGroup();
-  // 其他两家都要不起，随意走
-  if (!hasHitCard) {
-    isComputerFinished = computerFreeAction();
-  } else {
-    // 确定出牌的类型
-    const type = againstPlayer.cardInfo.cardType;
-    switch (type) {
-      case "SINGLE":
-        isComputerFinished = single();
-        break;
-      case "DOUBLE":
-        isComputerFinished = double();
-        break;
-      case "TRIPLE":
-        isComputerFinished = triple();
-        break;
-      case "BOMB":
-        isComputerFinished = bomb();
-        break;
-    }
-  }
-
-  // 把要出的牌从手牌里删除
-  computerDropTheCards();
-  return isComputerFinished;
-}
-
 function computerFreeAction() {
   let { singleGroup, doubleGroup, tripleGroup, bombGroup } = comCardGroup;
   let hitCards = [];
@@ -303,14 +359,14 @@ function computerFreeAction() {
   } else if (isLockSingleGroup && doubleGroup.length > 0) {
     hitCards = doubleGroup[0];
     cInfo = {
-      type: "DOUBLE",
+      cardType: "DOUBLE",
       matchLength: 2,
       addCard: 0,
     };
   } else if (tripleGroup.length > 0) {
     hitCards = tripleGroup[0];
     cInfo = {
-      type: "TRIPLE",
+      cardType: "TRIPLE",
       matchLength: 3,
       addCard: 0,
     };
@@ -318,7 +374,7 @@ function computerFreeAction() {
     hitCards = bombGroup[0];
     cInfo = {
       addCard: 0,
-      type: "BOMB",
+      cardType: "BOMB",
       matchLength: 4,
     };
   }
@@ -330,10 +386,56 @@ function selectedCards(hitCards, cInfo) {
     el.isSelected = true;
   });
   playerInfo.cardInfo = {
-    cardType: cInfo.type,
+    cardType: cInfo.cardType,
     matchLength: cInfo.matchLength,
     addCard: cInfo.addCard || "0",
     maxCard: hitCards[0].sortKey,
   };
   return true;
+}
+
+export default function computerHitCard(player, playerList) {
+  playerInfo = player;
+  console.log(playerInfo);
+  const hasHitCard = initGameInfo(playerList);
+  let isComputerFinished = false;
+  // 格式化手牌，按A，AA，AAA，AAAA分牌
+  formatCardsGroup();
+  // 其他两家都要不起，随意走
+  if (!hasHitCard) {
+    isComputerFinished = computerFreeAction();
+  } else {
+    // 确定出牌的类型
+    const type = againstPlayer.cardInfo.cardType;
+    switch (type) {
+      case "SINGLE":
+        isComputerFinished = single();
+        break;
+      case "DOUBLE":
+        isComputerFinished = double();
+        break;
+      case "TRIPLE":
+        isComputerFinished = triple();
+        break;
+      case "TRIPLE1":
+        isComputerFinished = tripleAdd(1);
+        break;
+      case "TRIPLE2":
+        isComputerFinished = tripleAdd(2);
+        break;
+      case "BOMB":
+        isComputerFinished = bomb();
+        break;
+      case "JBOMB":
+        isComputerFinished = false;
+        break;
+      case "DOUBLE_CONSEQUENT":
+        isComputerFinished = double('CONSEQUENT');
+        break;
+    }
+  }
+
+  // 把要出的牌从手牌里删除
+  computerDropTheCards();
+  return isComputerFinished;
 }

@@ -1,7 +1,7 @@
 const softSound = loadSound(require("@/assets/audio/soft.wav"));
 const hitSound = loadSound(require("@/assets/audio/hit.mp3"));
 const angrySound = loadSound(require("@/assets/audio/angry.mp3"));
-const bgmSound = loadSound(require("@/assets/audio/bg.mp3"));
+const bgmSound = loadSound(require("@/assets/audio/bg.mp3"), { loop: true });
 const btnSound = loadSound(require("@/assets/audio/btn.mp3"));
 const errorSound = loadSound(require("@/assets/audio/error.mp3"));
 const nothingSound = loadSound(require("@/assets/audio/nothing.wav"));
@@ -20,8 +20,9 @@ const AUDIO_MAP = {
 
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-export function loadSound(filename) {
-  const sound = { volume: 1, audioBuffer: null };
+export function loadSound(filename, options = null) {
+  let sound = { volume: 1, audioBuffer: null, loop: false };
+  sound = Object.assign(sound, options);
 
   const ajax = new XMLHttpRequest();
   ajax.open("GET", filename, true);
@@ -38,15 +39,14 @@ export function loadSound(filename) {
     );
   };
 
-  ajax.onerror = function() {
-  };
+  ajax.onerror = function() {};
 
   ajax.send();
 
   return sound;
 }
-export function playSound(soundType) {
-  console.log(soundType, 'soundType');
+export function playSound(soundType, isLoop = false) {
+  console.log(soundType, "soundType");
   const sound = AUDIO_MAP[soundType];
   if (!sound.audioBuffer) return false;
 
@@ -57,7 +57,9 @@ export function playSound(soundType) {
   if (!source.start) source.start = source.noteOn;
 
   if (!source.start) return false;
-
+  if (isLoop) {
+    source.loop = true;
+  }
   const gainNode = audioContext.createGain();
   gainNode.gain.value = sound.volume;
   source.connect(gainNode);
@@ -76,4 +78,3 @@ function setSoundVolume(sound, volume) {
 
   if (sound.gainNode) sound.gainNode.gain.value = volume;
 }
-

@@ -14,9 +14,7 @@
     >
       <div
         class="rank"
-        v-if="
-          !isScale || pokerInfo.suit !== 'little' || pokerInfo.suit !== 'big'
-        "
+        v-if="(pokerInfo.suit !== 'little' && pokerInfo.suit !== 'big') || !isScale"
       >
         {{ pokerInfo.rank }}
       </div>

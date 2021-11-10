@@ -1,6 +1,7 @@
 <template>
   <div class="poker-game">
     <div class="table">
+      <div class="lord-icon" v-if="!isHiddenThreeCard">👲</div>
       <!-- 顶部的三张牌 -->
       <div class="top-docker" v-if="isShowTop">
         <Card
@@ -36,10 +37,10 @@
           @update-card="clickCardHandler"
         />
       </div>
-      <div class="hands-card" v-if="player2.hands.length">
+      <div class="hands-card hands-card-right" v-if="player2.hands.length">
         <div class="back">{{ player2.hands.length }}</div>
       </div>
-      <div class="hands-card hands-card-right" v-if="player3.hands.length">
+      <div class="hands-card" v-if="player3.hands.length">
         <div class="back">{{ player3.hands.length }}</div>
       </div>
       <!-- 玩家当前出的牌 -->
@@ -94,12 +95,30 @@
     <div class="player-list">
       <div class="player">
         <img class="character" src="../assets/angry_banban.png" />
+        <div
+          class="worker worker1"
+          v-if="!player1.isLord && !isHiddenThreeCard"
+        >
+          👩‍🌾
+        </div>
       </div>
       <div class="cup1">
         <img class="character" src="../assets/thief_banban.png" />
+        <div
+          class="worker worker3"
+          v-if="!player3.isLord && !isHiddenThreeCard"
+        >
+          👩‍🌾
+        </div>
       </div>
       <div class="cup2">
         <img class="character" src="../assets/walking_dead_ban.png" />
+        <div
+          class="worker worker2"
+          v-if="!player2.isLord && !isHiddenThreeCard"
+        >
+          👩‍🌾
+        </div>
       </div>
       <div class="table">
         <img class="character" src="../assets/table.png" />
@@ -128,14 +147,14 @@
       >
         <UIButton
           class="ui-btn primary"
-          @clickHandler="askIfTobeLandlord"
+          @clickHandler="askIfTobeLandlord(player1)"
           style="width: 11vh"
           name="叫地主"
           type="call"
         />
         <UIButton
           class="ui-btn pain"
-          @clickHandler="notLandlord"
+          @clickHandler="notLandlord(player1)"
           style="width: 11vh"
           name="不叫"
           type="notCall"
@@ -190,7 +209,6 @@
 <script>
 import { sleep } from "@/utils/sleep.js";
 import computerHitCard from "@/utils/computer-ai.js";
-import { playAudio } from "@/constant/audio.js";
 import POKERS from "@/constant/poker.js";
 import UIButton from "./UIButton.vue";
 import shuffle from "lodash/shuffle.js";
@@ -198,16 +216,14 @@ import cloneDeep from "lodash/cloneDeep.js";
 import Card from "./Card.vue";
 import sortOrder from "@/constant/order.js";
 import { playSound } from "@/constant/audio.js";
-
-
-
-
+import { gsap } from "gsap";
 export default {
   name: "poker",
   data() {
     return {
       pokers: [],
       player1: {
+        name: "大毛",
         hands: [],
         isLandlord: false,
         isDouble: false,
@@ -215,8 +231,10 @@ export default {
         nowTurnHitCardsList: [],
         nextTurn: 2,
         preTurn: 3,
+        isLord: false,
       },
       player2: {
+        name: "二毛",
         hands: [],
         isLandlord: false,
         isDouble: false,
@@ -224,8 +242,10 @@ export default {
         nowTurnHitCardsList: [],
         nextTurn: 3,
         preTurn: 1,
+        isLord: false,
       },
       player3: {
+        name: "三毛",
         hands: [],
         isLandlord: false,
         isDouble: false,
@@ -233,6 +253,7 @@ export default {
         nowTurnHitCardsList: [],
         nextTurn: 1,
         preTurn: 2,
+        isLord: false,
       },
       playerList: [],
       isShowIfTobeLandlord: false,
@@ -243,9 +264,6 @@ export default {
       isHiddenThreeCard: true,
       isMyHit: false,
       lastThreeCard: [],
-      nowTurnHitCardsList: [], // 当前玩家出的牌
-      player2HitCardsList: [], // 当前玩家出的牌
-      player3HitCardsList: [], // 当前玩家出的牌
       isShowHitCards: false,
       isShowHitCardsPlayer2: false,
       isShowHitCardsPlayer3: false,
@@ -265,6 +283,7 @@ export default {
     Card,
     UIButton,
   },
+  watch: {},
   created() {
     this.playersJoinGame();
     this.shuffle();
@@ -278,10 +297,8 @@ export default {
     async startGame() {
       this.notStart = false;
       this.isShowPoker = true;
-      playSound('shuffle');
-      console.time();
+      playSound("shuffle");
       await this.deal();
-      console.timeEnd();
       this.lastThreeCard = cloneDeep(this.pokers);
       this.playerList.forEach((el) => this.sortPoker(el));
       this.sortPoker(this.player1);
@@ -344,7 +361,7 @@ export default {
     },
     // 洗牌
     shuffle() {
-      this.pokers = shuffle(POKERS);
+      this.pokers = shuffle(cloneDeep(POKERS));
     },
     // 发牌
     async deal() {
@@ -355,7 +372,6 @@ export default {
           }
         }
         this.isShowTop = true;
-        // this.printInfo();
       } catch (error) {
         console.log(error);
       }
@@ -382,21 +398,76 @@ export default {
       this.isShowDoubleTip = false;
     },
     // 叫地主
-    askIfTobeLandlord() {
-      this.repeatFn(3, this.dealThreeCards.bind(this));
+    askIfTobeLandlord(player) {
+      this.repeatFn(3, this.dealThreeCards.bind(this, player));
       this.isHiddenThreeCard = false;
       this.isShowIfTobeLandlord = false;
-      this.sortPoker(this.player1);
-      this.isMyHit = true;
+      setTimeout(async () => {
+        this.sortPoker(player);
+        player.isLord = true;
+        await this.lordAnimate(player);
+        if (player.playerNum === 1) {
+          this.isMyHit = true;
+        } else {
+          this.computerTurn(player);
+        }
+      }, 0);
+    },
+    lordAnimate(player) {
+      return new Promise((resolve) => {
+        const tl = gsap.timeline();
+        const workers = document.getElementsByClassName("worker");
+        const position = {
+          x: -260,
+          y: 50,
+          duration: 1,
+          rotationY: 720,
+          scale: 0.5,
+          ease: "power2.inOut",
+        };
+        if (player.playerNum === 2) {
+          Object.assign(position, {
+            x: 200,
+            y: -160,
+          });
+        }
+        // if (player.playerNum === 3) {
+        //   Object.assign(position, {
+        //     x: 100,
+        //     y: 100,
+        //   });
+        // }
+        tl.add();
+        tl.to(".lord-icon", {
+          rotationY: 1080,
+          duration: 2,
+          onComplete() {
+            workers.forEach((worker) => {
+              gsap.to(worker, {
+                rotationY: -720,
+                duration: 2,
+                opacity: 1,
+                ease: "power2.inOut",
+                scale: 0.5,
+              });
+            });
+            resolve();
+          },
+        });
+        tl.to(".lord-icon", position);
+      });
     },
     // 最后三张牌给地主
-    dealThreeCards() {
-      this.player1.hands.push(this.pokers.shift());
+    dealThreeCards(player) {
+      player.hands.push(this.pokers.shift());
     },
     // 不叫
-    notLandlord() {
+    notLandlord(player) {
       // 其他斑斑叫地主是否叫地主的逻辑？
       // 如果都不叫地主 重新洗牌发牌
+      const index = player.nextTurn;
+      const nextPlayer = this.playerList[index - 1];
+      this.askIfTobeLandlord(nextPlayer);
     },
     // 要不起
     nextOne() {
@@ -412,8 +483,17 @@ export default {
     afterHitHandler(player) {
       let { playerNum, nextTurn } = player;
       if (playerNum === 1) {
-        this.isMyHit = false;
         this.isShowHitCards = true;
+        this.isMyHit = false;
+
+        if (player.hands.length === 0) {
+          // 为什么用nextTick不行而用settimeout,0可以呢
+          setTimeout(() => {
+            alert(`${player.name}获胜啦！`);
+          }, 0);
+          this.resetGame();
+          return false;
+        }
       }
 
       if (playerNum === 2) {
@@ -435,7 +515,7 @@ export default {
       const isComputerHited = computerHitCard(computer, this.playerList);
 
       if (!isComputerHited) {
-        await playSound('notCall');
+        await playSound("notCall");
         if (cpuNumber === 2) {
           this.isShowHitCardsPlayer2 = true;
           computer.nowTurnHitCardsList = [];
@@ -449,7 +529,7 @@ export default {
           return;
         }
       } else {
-        await playSound('hit');
+        await playSound("hit");
       }
       this.afterHitHandler(computer);
     },
@@ -471,6 +551,10 @@ export default {
         this.selectedCards.splice(index, 1);
       }
     },
+    // 重制游戏参数
+    resetGame() {
+      this.shuffle();
+    },
   },
 };
 </script>
@@ -485,6 +569,9 @@ export default {
     padding: 2vh;
     position: relative;
     overflow: hidden;
+    .lord-icon {
+      font-size: 4em;
+    }
     .table {
       position: relative;
       width: 100%;
@@ -673,13 +760,16 @@ export default {
 
 @media all and (orientation: portrait) {
   /*竖屏时代码*/
-  /*横屏时代码*/
   .poker-game {
     width: 100%;
     height: 100%;
     padding: 2vw;
     position: relative;
     overflow: hidden;
+    .lord-icon {
+      position: absolute;
+      font-size: 4em;
+    }
     .table {
       position: relative;
       width: 100%;
@@ -812,6 +902,23 @@ export default {
         .character {
           width: 32vw;
         }
+      }
+      .worker {
+        position: absolute;
+        font-size: 4em;
+        opacity: 0;
+      }
+      .worker1 {
+        left: 14vw;
+        top: -12vw;
+      }
+      .worker2 {
+        left: 10vw;
+        top: -15vw;
+      }
+      .worker3 {
+        left: 8vw;
+        top: -15vw;
       }
       .table {
         position: absolute;

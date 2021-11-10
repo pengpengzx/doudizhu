@@ -1,6 +1,6 @@
 <template>
   <div id="app">
-    <Poker msg="Welcome to Your Vue.js App" />
+    <Poker/>
   </div>
 </template>
 
@@ -41,14 +41,12 @@ export default {
     };
     window.onresize = detectOrient;
     detectOrient();
-    // How to use:
-    // How to unlock all sounds:require("@/assets/audio/btn.mp3")
-    var emptySound = loadSound(require("@/assets/audio/nothing.wav"));
+
     document.body.addEventListener(
       "click",
       function () {
         if (isLoadSound) return;
-        isLoadSound && playSound('nothing');
+        isLoadSound && playSound("nothing");
         isLoadSound = true;
       },
       false
@@ -78,6 +76,22 @@ button {
   border: 0;
   outline: none;
   background-color: transparent;
+}
+* {
+  -webkit-tap-highlight-color: rgba(0, 0, 0, 0);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-touch-callout: none; /*系统默认菜单被禁用*/
+  -webkit-user-select: none; /*webkit浏览器*/
+  -khtml-user-select: none; /*早期浏览器*/
+  -moz-user-select: none; /*火狐*/
+  -ms-user-select: none; /*IE10*/
+  user-select: none;
+}
+input,textarea {
+    -webkit-user-select:auto; /*webkit浏览器*/
+    margin: 0px;
+    padding: 0px;
+    outline: none;
 }
 @media all and (orientation: landscape) {
   /*横屏时代码*/

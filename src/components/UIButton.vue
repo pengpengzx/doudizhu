@@ -36,7 +36,7 @@ export default {
         if (this.type === "hit") {
           this.playerHitHandler();
         } else {
-          if (this.type === "start") playSound('bgm');
+          if (this.type === "start") playSound('bgm', true);
           await playSound(this.type);
           this.$emit("clickHandler");
         }
@@ -49,10 +49,15 @@ export default {
         this.filterSelectedCard();
         // 没有选中的牌 返回
         const isValid = this.validateCardsRank();
-        if (!isValid) return playSound('error');
+        console.log(isValid, '玩家出的牌');
+        if (!isValid)  {
+          return playSound('error');
+        }
 
         // 通过校验后赋值
         this.player.cardInfo = isValid;
+        this.player.nowTurnHitCardsList = cloneDeep(this.selectedCards);
+
         this.dropTheCards(this.selectedCards);
         playSound('hit')
         this.$emit("clickHandler");
@@ -74,7 +79,6 @@ export default {
       });
 
       this.selectedCards = tempHitCards;
-      this.player.nowTurnHitCardsList = tempHitCards;
     },
     // 其他玩家是否都 要不起
     isFreeHit() {

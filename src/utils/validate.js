@@ -155,7 +155,6 @@ export function checkTriple(cards) {
 // AAAB
 export function checkTriple1(cards) {
   const cloneCards = cloneDeep(cards);
-
   if (cards[0].rank === cards[1].rank) {
     // AAAB
     const isValid = checkTriple(cloneCards.slice(0, 3));
@@ -191,13 +190,13 @@ export function checkTriple2(cards) {
       const isValid = checkDouble(cloneCards.slice(-2));
       if (isValid) {
         cardInfo = {
-          cardType: "checkTriple2",
+          cardType: "TRIPLE2",
           matchLength: 3,
           addCard: 2,
           maxCard: cards[0].rank,
         };
       }
-      return isValid && "checkTriple2";
+      return isValid && "TRIPLE2";
     }
   } else {
     if (checkTriple(cloneCards.slice(-3))) {
@@ -230,7 +229,6 @@ export function checkContinuously(cards) {
   const nums = cards.map((el) => el.sortKey);
   let index = AscentSortOrder.indexOf(nums[0]);
   const isContinuously = nums.every((el) => {
-    console.log(el, AscentSortOrder[index], index);
     const isEqual = el === AscentSortOrder[index];
     index++;
     return isEqual;
@@ -421,10 +419,11 @@ export function isBigger(player, computer) {
   const { cardType, maxCard } = player.cardInfo;
   const comMaxCard = computer.cardInfo.maxCard;
   let isBigger = false;
-
-  if (cardType === "SINGLE" || cardType === "DOUBLE" || cardType === "TRIPLE") {
-    isBigger = isBiggerUtils(maxCard, comMaxCard);
+  if ( cardType === "JBOMB") {
+    return true;  
   }
+  isBigger = isBiggerUtils(maxCard, comMaxCard);
+
   return isBigger;
 }
 
