@@ -9,6 +9,8 @@
   },
   "dependencies": {
     "core-js": "^3.6.5",
+    "express": "^4.17.1",
+    "express-session": "^1.17.2",
     "gsap": "^3.8.0",
     "lodash": "^4.17.21",
     "scss": "^0.2.4",
