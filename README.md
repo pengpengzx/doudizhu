@@ -1,5 +1,6 @@
 # doudizhu
-
+基于vue做的单机斗地主，目前电脑ai比较傻。。。
+后面还有好多地方需要优化
 ## Project setup
 ```
 npm install
