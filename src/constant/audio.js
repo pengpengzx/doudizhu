@@ -1,4 +1,4 @@
-const softSound = loadSound(require("@/assets/audio/soft.wav"));
+const softSound = loadSound(require("@/assets/audio/soft.mp3"));
 const hitSound = loadSound(require("@/assets/audio/hit.mp3"));
 const angrySound = loadSound(require("@/assets/audio/angry.mp3"));
 const bgmSound = loadSound(require("@/assets/audio/bg.mp3"), { loop: true });
