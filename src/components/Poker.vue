@@ -442,7 +442,7 @@ export default {
           rotationY: 1080,
           duration: 2,
           onComplete() {
-            workers.forEach((worker) => {
+          Array.from(workers).forEach((worker) => {
               gsap.to(worker, {
                 rotationY: -720,
                 duration: 2,
