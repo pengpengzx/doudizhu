@@ -1,19 +1,31 @@
 <template>
   <div id="app">
-    <Poker/>
+    <div class="load-page flex">
+      <progress id="file" max="100" value="70"> 70% </progress>
+    </div>
+    <Poker v-if="isReady"/>
   </div>
 </template>
 
 <script>
 import Poker from "./components/Poker.vue";
-import { loadSound, playSound } from "./constant/audio.js";
+import { loadAllSound, playSound } from "./constant/audio.js";
 let isLoadSound = false;
 export default {
   name: "App",
   components: {
     Poker,
   },
-  created() {},
+  data() {
+    return {
+      isReady: false,
+    };
+  },
+  created() {
+    const isReady = loadAllSound().then(() => {
+      this.isReady = isReady;
+    })
+  },
   mounted() {
     var detectOrient = function () {
       var width = document.documentElement.clientWidth,

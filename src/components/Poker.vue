@@ -417,6 +417,7 @@ export default {
       return new Promise((resolve) => {
         const tl = gsap.timeline();
         const workers = document.getElementsByClassName("worker");
+        console.log(workers, 'workers')
         const position = {
           x: -260,
           y: 50,

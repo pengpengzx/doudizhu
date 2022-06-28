@@ -6,6 +6,7 @@ const btnSound = loadSound(require("@/assets/audio/btn.mp3"));
 const errorSound = loadSound(require("@/assets/audio/error.mp3"));
 const nothingSound = loadSound(require("@/assets/audio/nothing.wav"));
 const shuffleSound = loadSound(require("@/assets/audio/shuffle.mp3"));
+
 const AUDIO_MAP = {
   "default": btnSound,
   "call": angrySound,
@@ -17,37 +18,46 @@ const AUDIO_MAP = {
   "nothing": nothingSound,
   "shuffle": shuffleSound,
 };
-
 const audioContext = new (window.AudioContext || window.webkitAudioContext)();
 
-export function loadSound(filename, options = null) {
-  let sound = { volume: 1, audioBuffer: null, loop: false };
-  sound = Object.assign(sound, options);
-
-  const ajax = new XMLHttpRequest();
-  ajax.open("GET", filename, true);
-  ajax.responseType = "arraybuffer";
-  ajax.onload = function() {
-    audioContext.decodeAudioData(
-      ajax.response,
-      function(buffer) {
-        sound.audioBuffer = buffer;
-      },
-      function(error) {
-        console.log(error);
-      }
-    );
-  };
-
-  ajax.onerror = function() {};
-
-  ajax.send();
-
-  return sound;
+export const loadAllSound = async () => {
+  const isReady = await Promise.all([softSound, hitSound, angrySound, bgmSound, btnSound, errorSound, nothingSound, shuffleSound]);
+  console.log(isReady, 'isReady');
+  return isReady;
 }
-export function playSound(soundType, isLoop = false) {
+
+export function loadSound(filename, options = null) {
+  return new Promise((resolve, reject) => {
+    let sound = { volume: 1, audioBuffer: null, loop: false };
+    sound = Object.assign(sound, options);
+  
+    const ajax = new XMLHttpRequest();
+    ajax.open("GET", filename, true);
+    ajax.responseType = "arraybuffer";
+    ajax.onload = function() {
+      audioContext.decodeAudioData(
+        ajax.response,
+        function(buffer) {
+          sound.audioBuffer = buffer;
+          resolve(sound);
+        },
+        function(error) {
+          console.log(error);
+          reject(error)
+        }
+      );
+    };
+  
+    ajax.onerror = function() {};
+    ajax.send();
+  })
+
+
+}
+export async function playSound(soundType, isLoop = false) {
   console.log(soundType, "soundType");
-  const sound = AUDIO_MAP[soundType];
+  const sound = await AUDIO_MAP[soundType];
+  console.log(sound, 'soundsoundsoundsound');
   if (!sound.audioBuffer) return false;
 
   const source = audioContext.createBufferSource();
