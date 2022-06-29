@@ -2,19 +2,19 @@ import sortOrder from "@/constant/order.js";
 import cloneDeep from "lodash/cloneDeep.js";
 
 // import groupBy from "lodash/groupBy.js";
-let playerInfo = null;
-let againstPlayer = null;
-let hitCard = [];
-let comCardGroup = {
+const playerInfo = null;
+const againstPlayer = null;
+const hitCard = [];
+const comCardGroup = {
   singleGroup: [],
   doubleGroup: [],
   tripleGroup: [],
   bombGroup: [],
   abcdeGroup: [],
 };
-let isLockSingleGroup = false;
-let isLockDoubleGroup = false;
-let isLockTripleGroup = false;
+const isLockSingleGroup = false;
+const isLockDoubleGroup = false;
+const isLockTripleGroup = false;
 
 // 工具方法 等同与_groupBy
 function groupBy(hands, key) {
@@ -41,10 +41,10 @@ function single() {
     return i - j > 0;
   });
   // 是否有更大的牌出
-  let hasMoreBigerCard = index > -1;
+  const hasMoreBiggerCard = index > -1;
 
   // 没有的话结束计算
-  if (!hasMoreBigerCard) return hasMoreBigerCard;
+  if (!hasMoreBiggerCard) return hasMoreBiggerCard;
   const hitCard = singleGroup[index];
   const cardid = hitCard.id;
 
@@ -61,7 +61,7 @@ function single() {
     maxCard: hitCard.sortKey,
   };
   console.log(`要出的牌${hitCard.sortKey}`, `playerInfo${playerNum}`);
-  return hasMoreBigerCard;
+  return hasMoreBiggerCard;
 }
 // AA
 function double(isContinuously) {
@@ -133,10 +133,10 @@ function triple() {
     return i - j > 0;
   });
   // 是否有更大的牌出
-  let hasMoreBigerCard = index > -1;
+  let hasMoreBiggerCard = index > -1;
 
   // 没有的话结束计算
-  if (!hasMoreBigerCard) return hasMoreBigerCard;
+  if (!hasMoreBiggerCard) return hasMoreBiggerCard;
   const hitCards = tripleGroup[index];
   hitCards.forEach((el) => {
     el.isSelected = true;
@@ -164,10 +164,10 @@ function tripleAdd(addNum) {
     return i - j > 0;
   });
   // 是否有更大的牌出
-  let hasMoreBigerCard = index > -1;
+  let hasMoreBiggerCard = index > -1;
 
   // 没有的话结束计算
-  if (!hasMoreBigerCard) return hasMoreBigerCard;
+  if (!hasMoreBiggerCard) return hasMoreBiggerCard;
 
   let singCard = singleGroup[0];
   let addCards = null;
@@ -215,10 +215,10 @@ function bomb() {
     return i - j > 0;
   });
   // 是否有更大的牌出
-  let hasMoreBigerCard = index > -1;
+  let hasMoreBiggerCard = index > -1;
 
   // 没有的话结束计算
-  if (!hasMoreBigerCard) return hasMoreBigerCard;
+  if (!hasMoreBiggerCard) return hasMoreBiggerCard;
   const hitCards = bombGroup[index];
   hitCards.forEach((el) => {
     el.isSelected = true;
